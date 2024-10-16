@@ -119,7 +119,7 @@ class OmadaClient:
             for item in wan_data:
                 result_data.append({
                     'portUuid' : item['portUuid'],
-                    'portName' : item['portName'],
+                    'port_name' : item['port_name'],
                     'portDesc' : item['portDesc']
                 })
         else:
@@ -127,26 +127,26 @@ class OmadaClient:
 
         return result_data
     
-    def get_wan_ports_by_name(self, portName:str):
+    def get_wan_ports_by_name(self, port_name:str):
         """
         Get WAN port by its name
         Require:
-            - portName: WAN port name
+            - port_name: WAN port name
         """
         allPorts = self.get_all_wan_ports()
         for item in allPorts:
-            if item["portName"].lower() == portName.lower():
+            if item["port_name"].lower() == port_name.lower():
                 return item
         return None
 
-    def create_static_route(self, routeName:str, destinations:list, interfaceId:str, nextHopIp:str, routeEnable:bool = True, metricId:int = 0) -> object:
+    def create_static_route(self, route_name:str, destinations:list, interface_id:str, next_hop_ip:str, routeEnable:bool = True, metricId:int = 0) -> object:
         """
         Create a static route
         Require:
-            - routeName: Name of the new route
+            - route_name: Name of the new route
             - destinations: Array with route data
-            - interfaceId: Output interface identifier
-            - nextHopIp: Next address (Usually the gateway address of the selected WAN port)
+            - interface_id: Output interface identifier
+            - next_hop_ip: Next address (Usually the gateway address of the selected WAN port)
             - routeEnable: Enable route immediately
             - metricId: Metric identifier
         """
@@ -154,26 +154,26 @@ class OmadaClient:
             f"{self.base_url}/{self.user_id}/api/v2/sites/{self.default_site}/setting/transmission/staticRoutings",
             headers=self.__get_headers(),
             json={
-                "name": routeName,
+                "name": route_name,
                 "status": routeEnable,
                 "destinations": destinations,
                 "routeType": 1,
-                "interfaceId": interfaceId,
+                "interfaceId": interface_id,
                 "interfaceType": 0,
-                "nextHopIp": nextHopIp,
+                "nextHopIp": next_hop_ip,
                 "metric": metricId
             }
         )
         return response.json()
 
-    def create_static_route_to_inteface_with_big_data(self, data_static_routes:list, interfaceId:str, nextHopIp:str, routeEnable:bool = True, metricId:int = 0) -> object:
+    def create_static_route_to_inteface_with_big_data(self, data_static_routes:list, interface_id:str, next_hop_ip:str, routeEnable:bool = True, metricId:int = 0) -> object:
         """
         Create a static route from a large amount of data
         Require:
-            - routeName: Name of the new route
+            - route_name: Name of the new route
             - data_static_routes: Array with route data
-            - interfaceId: Output interface identifier
-            - nextHopIp: Next address (Usually the gateway address of the selected WAN port)
+            - interface_id: Output interface identifier
+            - next_hop_ip: Next address (Usually the gateway address of the selected WAN port)
             - routeEnable: Enable route immediately
             - metricId: Metric identifier
         """
@@ -184,8 +184,8 @@ class OmadaClient:
                 request = self.create_static_route(
                     static_route['name'], 
                     parts[0],
-                    interfaceId,
-                    nextHopIp,
+                    interface_id,
+                    next_hop_ip,
                     routeEnable,
                     metricId
                 )
@@ -196,22 +196,22 @@ class OmadaClient:
                     request = self.create_static_route(
                         part_name, 
                         parts[part_number],
-                        interfaceId,
-                        nextHopIp,
+                        interface_id,
+                        next_hop_ip,
                         routeEnable,
                         metricId
                     )
                     print( part_name + ': ' + request['msg'] )
 
-    def create_profile_group(self, groupName:str, ipList:list) -> object:
+    def create_profile_group(self, group_name:str, ip_list:list) -> object:
         """
         Create a group profile
         Require:
-            - groupName: Name of the new group
-            - ipList: Array with data
+            - group_name: Name of the new group
+            - ip_list: Array with data
         """
         body = {
-            "name": groupName,
+            "name": group_name,
             "type": 0,
             "ipList": [],
             "ipv6List":None,
@@ -224,7 +224,7 @@ class OmadaClient:
             "domainNamePort": None
         }
 
-        for ipWithMask in ipList:
+        for ipWithMask in ip_list:
             body['ipList'].append({'ip' : ipWithMask.split('/')[0], "mask": ipWithMask.split('/')[1], "description":""})
 
         response = self.session.post(
