@@ -16,6 +16,6 @@ setup(name='omada_client',
       ],
       license = "MIT",
       packages=['omada_client'],
-      url='https://github.com/ErilovNikita/omada_client',
+      url='https://github.com/ErilovNikita/omada-client',
       author_email='minitwiks@gmail.com',
       zip_safe=False)

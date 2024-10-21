@@ -1,4 +1,4 @@
-# omada_client
+# omada-client
 [![PyPI Version](https://img.shields.io/pypi/v/omada-client)](https://pypi.org/project/omada-client)
 
 Python client for Tp-Link Omada Controller ([Omada Software Controller](https://www.tp-link.com/business-networking/omada-sdn-controller/omada-software-controller/)).
