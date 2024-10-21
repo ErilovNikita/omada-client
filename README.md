@@ -1,4 +1,6 @@
 # omada_client
+[![PyPI Version](https://img.shields.io/pypi/v/omada-client)](https://pypi.org/project/omada-client/1.1.0/)
+
 Python client for Tp-Link Omada Controller ([Omada Software Controller](https://www.tp-link.com/business-networking/omada-sdn-controller/omada-software-controller/)).
 Execute API calls to Omada Controller from python code.
 
