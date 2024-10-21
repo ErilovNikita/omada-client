@@ -1,17 +1,16 @@
-# omada-api
-Python api module for Tp-Link Omada Controller ([Omada Software Controller](https://www.tp-link.com/business-networking/omada-sdn-controller/omada-software-controller/)).
-Execute API calls to omada controller from python code.
+# omada_client
+Python client for Tp-Link Omada Controller ([Omada Software Controller](https://www.tp-link.com/business-networking/omada-sdn-controller/omada-software-controller/)).
+Execute API calls to Omada Controller from python code.
 
 ## Installation
 ```bash
-git clone https://github.com/ErilovNikita/omada-api.git
-cd omada-api
+pip install omada_client
 ```
 
 ## Examples
 ### Create class
 ```python
-from omadaAPI import OmadaClient
+from omada_client import OmadaClient
 omada = OmadaClient( 'OMADA_DOMAIN', 'OMADA_USER', 'OMADA_PASSWORD' )
 ```
 where:
@@ -23,7 +22,7 @@ or using environment variables "OMADA_DOMAIN" and "OMADA_USER" and "OMADA_PASSWO
 ```python
 import os
 from dotenv import load_dotenv
-from omadaAPI import OmadaClient
+from omada_client import OmadaClient
 
 load_dotenv()
 
