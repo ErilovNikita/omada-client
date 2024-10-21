@@ -2,10 +2,12 @@
 Omada python API client.
 Permit send commands to omada controller via http calls
 """
+
 import requests
-from json import loads
 import math
 import urllib3
+from omada_client.types import HeaderModel, ComplexResponse, UserModel, WanPortModel, DeviceModel, ClientModel
+
 
 class OmadaClient:
     """
@@ -16,7 +18,7 @@ class OmadaClient:
         - password: Omada password
     """
 
-    def __init__(self, base_url, login, password):
+    def __init__(self, base_url, login, password) -> None:
         urllib3.disable_warnings()
         self.session = requests.Session()
         self.base_url = base_url
@@ -32,35 +34,39 @@ class OmadaClient:
         response = self.session.post(
             f"{self.base_url}/api/v2/login",
             json={"username": login, "password": password},
-            verify=False
+            verify=False,
         )
-        data = loads(response.text)
+        response.raise_for_status()
+        data = ComplexResponse.model_validate_json(response.text).result
 
-        self.session_id = response.cookies.get('TPOMADA_SESSIONID')
-        self.csrf = data['result']['token']
-        self.user_id = self.__get_user_data()["result"]["omadacId"]
-        self.sites = self.__get_user_data()["result"]["privilege"]["sites"]
+        self.session_id = response.cookies.get("TPOMADA_SESSIONID")
+        self.csrf = data.get("token")
+
+        self.user_id = self.__get_user_data().omada_id
+        self.sites = self.__get_user_data().privilege.sites
         self.default_site = self.sites[0]
-        # print("Login successful. CSRF Token:", self.csrf)
 
-    def __get_headers(self) -> object:
+    def __get_headers(self) -> dict[str, str]:
         """Get headers for a request with a CSRF token"""
-        headers =  {
-            'Cookie' : 'TPOMADA_SESSIONID=' + self.session_id,
-            'Csrf-Token' : self.csrf,
-        }
-        return headers
+        header = HeaderModel(token=self.csrf, cookie=self.session_id)
+        return header.model_dump(by_alias=True)
 
-    def __get_user_data(self) -> object:
-        """Get information about the current user"""
-        request = self.session.get(
-            f"{self.base_url}/api/v2/current/users",
+    def __send_get_request(self, path):
+        """Basic method for sending GET requests"""
+        response = self.session.get(
+            f"{self.base_url}{path}",
             headers=self.__get_headers(),
-            verify=False
+            verify=False,
         )
-        return loads(request.text)
+        response.raise_for_status()
+        return ComplexResponse.model_validate_json(response.text)
 
-    def __divider(self, data:str, separator:str, size:int = 16) -> object:
+    def __get_user_data(self) -> dict:
+        """Get information about the current user"""
+        response = self.__send_get_request("/api/v2/current/users").result
+        return UserModel.model_validate(response)
+
+    def __divider(self, data: str, separator: str, size: int = 16) -> dict:
         """
         Divides lists into blocks with the required number
         Require:
@@ -69,77 +75,82 @@ class OmadaClient:
             - size: Block size (default 16)
         """
         result = []
-        part_count = math.ceil(len(data.split(separator))/ size)
+        part_count = math.ceil(len(data.split(separator)) / size)
 
         for part_number in range(part_count):
             data_part = []
             end = 16 + (16 * part_number) - 1
 
-            if end > (len(data.split(separator)) - 1): end = len(data.split(separator)) - 1
-            
+            if end > (len(data.split(separator)) - 1):
+                end = len(data.split(separator)) - 1
+
             i = 0 + (16 * part_number)
             while i <= end:
-                data_part.append( data.split(separator)[i] )
+                data_part.append(data.split(separator)[i])
                 i += 1
 
             result.append(data_part)
         return result
-    
+
     def __format_mac_address(self, mac: str) -> str:
         """
         Formats the mac address in the required format
         Require:
             - mac: String value of MAC address
         """
-        # Убираем все лишние символы, оставляя только буквы и цифры
-        mac_cleaned = ''.join(c for c in mac if c.isalnum())
-        
-        # Проверяем, что длина MAC адреса верная
+        mac_cleaned = "".join(c for c in mac if c.isalnum())
         if len(mac_cleaned) != 12:
-            raise ValueError("Неверный MAC-адрес: длина должна быть 12 символов.")
-        
-        # Преобразуем в верхний регистр и разделяем на пары символов
-        mac_formatted = '-'.join(mac_cleaned[i:i+2].upper() for i in range(0, len(mac_cleaned), 2))
-        
+            raise ValueError("Invalid MAC address: length must be 12 characters.")
+
+        mac_formatted = "-".join(
+            mac_cleaned[i : i + 2].upper() for i in range(0, len(mac_cleaned), 2)
+        )
+
         return mac_formatted
 
-    def get_all_wan_ports(self) -> list:
+    def get_all_wan_ports(self) -> list[WanPortModel]:
         """Get a list of WAN ports"""
-        response = self.session.get(
-            f"{self.base_url}/{self.user_id}/api/v2/sites/{self.default_site}/setting/wan/networks",
-            headers=self.__get_headers(),
-            verify=False
-        )
-        data = response.json()
+        response = self.__send_get_request(
+            f"/{self.user_id}/api/v2/sites/{self.default_site}/setting/wan/networks"
+        ).result
+        wan_list = []
+        for item in response.get("wanPortSettings"):
+            wan_list.append(WanPortModel.model_validate(item))
+        return wan_list
 
-        result_data = None
-        if data['errorCode'] == 0 and data['msg'] == 'Success.':
-            result_data = []
-            wan_data = data['result']['wanPortSettings']
-            for item in wan_data:
-                result_data.append({
-                    'portUuid' : item['portUuid'],
-                    'port_name' : item['port_name'],
-                    'portDesc' : item['portDesc']
-                })
-        else:
-            result_data = data['msg']
-
-        return result_data
-    
-    def get_wan_ports_by_name(self, port_name:str):
+    def get_wan_ports_by_name(self, port_name: str) -> WanPortModel:
         """
         Get WAN port by its name
         Require:
             - port_name: WAN port name
         """
-        allPorts = self.get_all_wan_ports()
-        for item in allPorts:
-            if item["port_name"].lower() == port_name.lower():
-                return item
-        return None
+        wan_list = self.get_all_wan_ports()
+        return next(
+            (wan for wan in wan_list if wan.port_name.lower() == port_name.lower()),
+            None,
+        )
 
-    def create_static_route(self, route_name:str, destinations:list, interface_id:str, next_hop_ip:str, routeEnable:bool = True, metricId:int = 0) -> object:
+    def get_wan_ports_by_desc(self, port_decr: str) -> WanPortModel:
+        """
+        Get WAN port by description field
+        Require:
+            - port_decr: Description field in WAN
+        """
+        wan_list = self.get_all_wan_ports()
+        return next(
+            (wan for wan in wan_list if wan.port_desc.lower() == port_decr.lower()),
+            None,
+        )
+
+    def create_static_route(
+        self,
+        route_name: str,
+        destinations: list[str],
+        interface_id: str,
+        next_hop_ip: str,
+        enable: bool = True,
+        metricId: int = 0,
+    ) -> None:
         """
         Create a static route
         Require:
@@ -147,7 +158,7 @@ class OmadaClient:
             - destinations: Array with route data
             - interface_id: Output interface identifier
             - next_hop_ip: Next address (Usually the gateway address of the selected WAN port)
-            - routeEnable: Enable route immediately
+            - enable: Enable route immediately
             - metricId: Metric identifier
         """
         response = self.session.post(
@@ -155,18 +166,26 @@ class OmadaClient:
             headers=self.__get_headers(),
             json={
                 "name": route_name,
-                "status": routeEnable,
+                "status": enable,
                 "destinations": destinations,
                 "routeType": 1,
                 "interfaceId": interface_id,
                 "interfaceType": 0,
                 "nextHopIp": next_hop_ip,
-                "metric": metricId
-            }
+                "metric": metricId,
+            },
+            verify=False
         )
-        return response.json()
+        response.raise_for_status()
 
-    def create_static_route_to_inteface_with_big_data(self, data_static_routes:list, interface_id:str, next_hop_ip:str, routeEnable:bool = True, metricId:int = 0) -> object:
+    def create_static_route_to_inteface_with_big_data(
+        self,
+        data_static_routes: list,
+        interface_id: str,
+        next_hop_ip: str,
+        enable: bool = True,
+        metricId: int = 0,
+    ) -> None:
         """
         Create a static route from a large amount of data
         Require:
@@ -174,162 +193,132 @@ class OmadaClient:
             - data_static_routes: Array with route data
             - interface_id: Output interface identifier
             - next_hop_ip: Next address (Usually the gateway address of the selected WAN port)
-            - routeEnable: Enable route immediately
+            - enable: Enable route immediately
             - metricId: Metric identifier
         """
         for static_route in data_static_routes:
-            parts = self.__divider(static_route['ips'], 16, ', ')
+            parts = self.__divider(
+                data=static_route["ips"],
+                size=16,
+                separator=", "
+            )
 
             if len(parts) == 1:
-                request = self.create_static_route(
-                    static_route['name'], 
+                self.create_static_route(
+                    static_route["name"],
                     parts[0],
                     interface_id,
                     next_hop_ip,
-                    routeEnable,
-                    metricId
+                    enable,
+                    metricId,
                 )
-                print( static_route['name'] + ': ' + request['msg'] )
             else:
                 for part_number in range(len(parts)):
-                    part_name = static_route['name'] + ' ' + str(part_number + 1)
-                    request = self.create_static_route(
-                        part_name, 
+                    part_name = static_route["name"] + " " + str(part_number + 1)
+                    self.create_static_route(
+                        part_name,
                         parts[part_number],
                         interface_id,
                         next_hop_ip,
-                        routeEnable,
-                        metricId
+                        enable,
+                        metricId,
                     )
-                    print( part_name + ': ' + request['msg'] )
 
-    def create_profile_group(self, group_name:str, ip_list:list) -> object:
-        """
-        Create a group profile
-        Require:
-            - group_name: Name of the new group
-            - ip_list: Array with data
-        """
-        body = {
-            "name": group_name,
-            "type": 0,
-            "ipList": [],
-            "ipv6List":None,
-            "macAddressList":None,
-            "portList":None,
-            "countryList":None,
-            "description":"",
-            "portType":None,
-            "portMaskList":None,
-            "domainNamePort": None
-        }
-
-        for ipWithMask in ip_list:
-            body['ipList'].append({'ip' : ipWithMask.split('/')[0], "mask": ipWithMask.split('/')[1], "description":""})
-
-        response = self.session.post(
-            self.base_url + '/' + self.user_id + '/api/v2/sites/' + self.default_site + '/setting/profiles/groups',
-            headers=self.__get_headers(),
-            json=body
-        )
-        return response.json()
-
-    def get_devices(self) -> list:
+    def get_devices(self) -> list[DeviceModel]:
         """Get list of devices"""
-        url = f"{self.base_url}/{self.user_id}/api/v2/sites/{self.default_site}/devices"
-        response = self.session.get(url, headers=self.__get_headers(), verify=False)
-        response.raise_for_status()
-        return response.json()
+        response = self.__send_get_request(f"/{self.user_id}/api/v2/sites/{self.default_site}/devices").result
+        device_list = []
+        for item in response:
+            device_list.append(DeviceModel.model_validate(item))
+        return device_list
 
-    def get_client_by_mac(self, mac:str) -> object:
+    def get_clients(self) -> list[ClientModel]:
+        """Get all clients"""
+        response = self.__send_get_request(
+            f"/{self.user_id}/api/v2/sites/{self.default_site}/clients?currentPage=1&currentPageSize=1000&filters.active=true"
+        ).result
+        client_list = []
+        for item in response.get("data"):
+            client_list.append(ClientModel.model_validate(item))
+        return client_list
+
+    def get_client_by_mac(self, mac: str) -> ClientModel:
         """
         Get a client by their MAC address
         Require:
             - mac: String value of MAC address
         """
         correct_mac = self.__format_mac_address(mac)
-        url = f"{self.base_url}/{self.user_id}/api/v2/sites/{self.default_site}/clients/{correct_mac}"
-        response = self.session.get(url, headers=self.__get_headers(), verify=False)
-        response.raise_for_status()
-        return response.json()
-    
-    def get_clients(self) -> list:
-        """Get all clients"""
-        url = f"{self.base_url}/{self.user_id}/api/v2/sites/{self.default_site}/clients?currentPage=1&currentPageSize=100&filters.active=true"
-        response = self.session.get(url, headers=self.__get_headers(), verify=False)
-        response.raise_for_status()
-        return response.json()['result']['data']
+        response = self.__send_get_request(
+            f"/{self.user_id}/api/v2/sites/{self.default_site}/clients/{correct_mac}"
+        ).result
+        return ClientModel.model_validate(response)
 
-    def get_client_by_ip(self, ip_address:str) -> object:
+    def get_client_by_ip(self, ip_address: str) -> ClientModel:
         """
         Get a client by its IP address
         Require:
             - ip_address: String value of IP address
         """
-        clients = self.get_clients()
-        for client in clients:
-            if client.get("ip") == ip_address:
-                return client
+        for client in self.get_clients():
+            if client.ip == ip_address:
+                return ClientModel.model_validate(client)
         return None
 
-    def set_client_fixed_address_by_mac(self, mac:str, ip_address:str = None) -> object:
+    def set_client_fixed_address_by_mac(self, mac: str, ip_address: str = None) -> None:
         """
         Assign a fixed IP address to the client based on its MAC address
         Require:
             - mac: String value of MAC address
             - ip_address: String value of IP address
         """
-        client_data = self.get_client_by_mac(mac)
+        correct_mac = self.__format_mac_address(mac)
+        client = self.get_client_by_mac(correct_mac)
 
-        if not ip_address: ip_address = client_data['result']['ip']
+        if not client:
+            raise ValueError(f"Not found device with MAC address is {mac}")
+        else:
+            if not ip_address:
+                ip_address = client.ip
 
-        body = {
-            "ipSetting": {
-                "useFixedAddr": True,
-                "netId": client_data['result']['ipSetting']['netId'],
-                "ip": ip_address
+            body = {
+                "ipSetting": {
+                    "useFixedAddr": True,
+                    "netId": client.ip_setting.get("netId"),
+                    "ip": ip_address,
+                }
             }
-        }
-        
-        url = f"{self.base_url}/{self.user_id}/api/v2/sites/{self.default_site}/clients/{client_data['result']['mac']}"
-        response = self.session.patch(url, headers=self.__get_headers(), json=body, verify=False)
-        return response.json()
-    
-    def set_client_fixed_address_by_ip(self, ip_address:str) -> object:
+
+            url = f"{self.base_url}/{self.user_id}/api/v2/sites/{self.default_site}/clients/{client.mac}"
+            response = self.session.patch( url, headers=self.__get_headers(), json=body, verify=False )
+            response.raise_for_status()
+            
+    def set_client_fixed_address_by_ip(self, ip_address: str) -> None:
         """
         Assign a fixed IP address to the client based on its IP address
         Require:
             - ip_address: String value of IP address
         """
         client = self.get_client_by_ip(ip_address)
-
-        if client:
-            mac_address = client.get('mac')
-            return self.set_client_fixed_address_by_mac(mac_address)
-        return None
-    
-    def set_client_dymanic_address_by_mac(self, mac:str) -> object:
+        if not client:
+            raise ValueError(f"Not found device with IP address is {ip_address}")
+        else:
+            response = self.set_client_fixed_address_by_mac(client.mac)
+            response.raise_for_status()
+            
+    def set_client_dymanic_address_by_mac(self, mac: str) -> None:
         """
         Assign a dynamic IP address to the client
         Require:
             - mac: String value of MAC address
         """
-        client_data = self.get_client_by_mac(mac)
-        body = { "ipSetting": { "useFixedAddr": False } }
-        url = f"{self.base_url}/{self.user_id}/api/v2/sites/{self.default_site}/clients/{self.__format_mac_address(mac)}"
-        response = self.session.patch(url, headers=self.__get_headers(), json=body, verify=False)
-        return response.json()
+        correct_mac = self.__format_mac_address(mac)
+        client = self.get_client_by_mac(correct_mac)
 
-    # def reboot_device(self, device_id):
-    #     """Reboot device by its ID"""
-    #     url = f"{self.base_url}/{self.user_id}/api/v2/sites/{self.default_site}/devices/{device_id}/reboot"
-    #     response = self.session.post(url, headers=self.__get_headers(), verify=False)
-    #     response.raise_for_status()
-    #     return response.json()['result']
-
-    # def upgrade_firmware(self, device_id):
-    #     """Update firmware on the device"""
-    #     url = f"{self.base_url}/{self.user_id}.api/v2/sites/{self.default_site}/devices/{device_id}/upgrade"
-    #     response = self.session.post(url, headers=self.__get_headers(), verify=False)
-    #     response.raise_for_status()
-    #     return response.json()['result']
+        if not client:
+            raise ValueError(f"Not found device with MAC address is {mac}")
+        else:
+            body = {"ipSetting": {"useFixedAddr": False}}
+            url = f"{self.base_url}/{self.user_id}/api/v2/sites/{self.default_site}/clients/{correct_mac}"
+            response = self.session.patch(url, headers=self.__get_headers(), json=body, verify=False)
+            response.raise_for_status()
