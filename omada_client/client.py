@@ -303,8 +303,7 @@ class OmadaClient:
         if not client:
             raise ValueError(f"Not found device with IP address is {ip_address}")
         else:
-            response = self.set_client_fixed_address_by_mac(client.mac)
-            response.raise_for_status()
+            self.set_client_fixed_address_by_mac(client.mac)
             
     def set_client_dymanic_address_by_mac(self, mac: str) -> None:
         """
