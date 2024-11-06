@@ -43,6 +43,15 @@ class WanPortModel(BaseModel):
     wan_port_ipv4_setting: dict = Field(None, alias="wanPortIpv4Setting")
 
 
+class WlanModel(BaseModel):
+    id: str
+    name: str
+    site: str
+    guest: bool = Field(None, alias="guestNetEnable")
+    psk_setting: dict = Field(None, alias="pskSetting")
+    vlan_id: int = Field(None, alias="vlanId")
+
+
 class DeviceModel(BaseModel):
     type: str
     mac: str

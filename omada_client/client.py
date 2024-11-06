@@ -6,7 +6,7 @@ Permit send commands to omada controller via http calls
 import requests
 import math
 import urllib3
-from omada_client.types import HeaderModel, ComplexResponse, UserModel, WanPortModel, DeviceModel, ClientModel
+from omada_client.types import HeaderModel, ComplexResponse, UserModel, WanPortModel, DeviceModel, ClientModel, WlanModel
 
 
 class OmadaClient:
@@ -117,6 +117,28 @@ class OmadaClient:
         for item in response.get("wanPortSettings"):
             wan_list.append(WanPortModel.model_validate(item))
         return wan_list
+
+    def get_all_wlan(self) -> list[WlanModel]:
+        """Get a list of Wifi Networks"""
+        response = self.__send_get_request(
+            f"/{self.user_id}/api/v2/sites/{self.default_site}/setting/wlans/660fccd41f61064468ff7f30/ssids?currentPage=1&currentPageSize=1000"
+        ).result
+        wlan_list = []
+        for item in response.get("data"):
+            wlan_list.append(WlanModel.model_validate(item))
+        return wlan_list
+
+    def get_wlan_by_ssid(self, ssid: str) -> WlanModel:
+        """
+        Get a Wlan by SSID
+        Require:
+            - ssid: Wi-Fi SSID
+        """
+        wlan_list = self.get_all_wlan()
+        return next(
+            (wlan for wlan in wlan_list if wlan.name.lower() == ssid.lower()),
+            None,
+        )
 
     def get_wan_ports_by_name(self, port_name: str) -> WanPortModel:
         """

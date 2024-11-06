@@ -47,6 +47,10 @@ omadaClient.get_all_wan_ports()
 omadaClient.get_wan_ports_by_name("WAN/LAN1")
 # Get WAN port by its name
 omadaClient.get_wan_ports_by_desc("domru")
+# Get a list of Wifi Networks
+omadaClient.get_all_wlan()
+# Get a Wlan by SSID
+omadaClient.get_wlan_by_ssid("HomeNetwork")
 # Create a static route
 omadaClient.create_static_route(
     route_name="test",
