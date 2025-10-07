@@ -1,112 +1,112 @@
 # omada-client
-[![PyPI Version](https://img.shields.io/pypi/v/omada-client)](https://pypi.org/project/omada-client)
 
-Python client for Tp-Link Omada Controller ([Omada Software Controller](https://www.tp-link.com/business-networking/omada-sdn-controller/omada-software-controller/)).
-Execute API calls to Omada Controller from python code.
+[![PyPI Version](https://img.shields.io/pypi/v/omada-client)](https://pypi.org/project/omada-client)
+![Tests](https://github.com/ErilovNikita/omada-client/actions/workflows/python-publish.yml/badge.svg)
+
+Python client for **Tp-Link Omada Controller** ([Omada Software Controller](https://www.tp-link.com/business-networking/omada-sdn-controller/omada-software-controller/)).
+Allows executing API calls to the Omada Controller from Python code.
+
+---
 
 ## Installation
+
 ```bash
 pip install omada-client
 ```
 
-## Examples
-### Create class
+---
+
+## Quick Start
+
+### Using direct credentials
+
 ```python
 from omada_client import OmadaClient
-omada = OmadaClient( "OMADA_DOMAIN", "OMADA_USER", "OMADA_PASSWORD" )
-```
-where:
-- OMADA_DOMAIN: URL of Omada WebUi page
-- OMADA_USER: Username of Omada WebUi
-- OMADA_PASSWORD: Password of Omada WebUi
 
-or using environment variables "OMADA_DOMAIN" and "OMADA_USER" and "OMADA_PASSWORD":
+omada = OmadaClient(
+    "OMADA_DOMAIN",   # URL of Omada WebUI
+    "OMADA_USER",     # Username
+    "OMADA_PASSWORD"  # Password
+)
+```
+
+### Using environment variables
+
 ```python
 from dotenv import load_dotenv
 import os
 from omada_client import OmadaClient
+
 load_dotenv()
 
-def main():
-    omadaClient = OmadaClient( 
-        os.getenv("OMADA_DOMAIN"), 
-        os.getenv("OMADA_USER"), 
-        os.getenv("OMADA_PASSWORD")
-    )
+omada = OmadaClient(
+    os.getenv("OMADA_DOMAIN"),
+    os.getenv("OMADA_USER"),
+    os.getenv("OMADA_PASSWORD")
+)
 
-    print( omadaClient.get_devices() )
-if __name__ == "__main__":
-    main() 
+print(omada.get_devices())
 ```
 
-## Methods
+---
+
+## Methods Reference
+
+| Category | Method | Parameters | Description |
+|----------|--------|------------|-------------|
+| **WAN Ports** | `get_all_wan_ports()` | None | List all WAN ports |
+|  | `get_wan_ports_by_name(name)` | `name: str` | Get WAN port by name |
+|  | `get_wan_ports_by_desc(desc)` | `desc: str` | Get WAN port by description |
+| **Wireless** | `get_all_wlan()` | None | List all Wi-Fi networks |
+|  | `get_wlan_by_ssid(ssid)` | `ssid: str` | Get Wi-Fi network by SSID |
+| **Static Routes** | `create_static_route(route_name, destinations, interface_id, next_hop_ip, enable=False, metricId=0)` | `route_name: str`, `destinations: list[str]`, `interface_id: str`, `next_hop_ip: str` | Create a single static route |
+|  | `create_static_route_to_inteface_with_big_data(data_static_routes, interface_id, next_hop_ip, enable=False, metricId=0)` | `data_static_routes: list`, `interface_id: str`, `next_hop_ip: str` | Create static routes from large data |
+| **Devices & Clients** | `get_devices()` | None | List all devices |
+|  | `get_clients()` | None | List all clients |
+|  | `get_client_by_mac(mac)` | `mac: str` | Get client by MAC |
+|  | `get_client_by_ip(ip_address)` | `ip_address: str` | Get client by IP |
+| **IP Assignment** | `set_client_fixed_address_by_mac(mac, ip_address=None)` | `mac: str`, `ip_address: str` | Assign fixed IP by MAC |
+|  | `set_client_fixed_address_by_ip(ip_address)` | `ip_address: str` | Assign fixed IP by IP |
+|  | `set_client_dymanic_address_by_mac(mac)` | `mac: str` | Assign dynamic IP by MAC |
+
+---
+
+## Advanced Example
+
+### Create static routes from large data sets
+
 ```python
-# Get a list of WAN ports
-omadaClient.get_all_wan_ports()
-# Get WAN port by its name
-omadaClient.get_wan_ports_by_name("WAN/LAN1")
-# Get WAN port by its name
-omadaClient.get_wan_ports_by_desc("domru")
-# Get a list of Wifi Networks
-omadaClient.get_all_wlan()
-# Get a Wlan by SSID
-omadaClient.get_wlan_by_ssid("HomeNetwork")
-# Create a static route
-omadaClient.create_static_route(
-    route_name="test",
-    destinations=["8.8.8.8/24", "1.1.1.1/24"],
-    interface_id=omadaClient.get_wan_ports_by_desc("openwrt").port_uuid,
-    next_hop_ip="192.168.1.1",
+from dotenv import load_dotenv
+import os
+from omada_client import OmadaClient
+
+load_dotenv()
+
+omada = OmadaClient(
+    os.getenv("OMADA_DOMAIN"),
+    os.getenv("OMADA_USER"),
+    os.getenv("OMADA_PASSWORD")
+)
+
+data = [
+    {"name": "group_1", "ips": "99.99.99.99/24, 88.88.88.88/24"},
+    {"name": "group_2", "ips": "99.99.99.99/24, 88.88.88.88/24"}
+]
+
+wan = omada.get_wan_ports_by_desc("openwrt")
+
+omada.create_static_route_to_inteface_with_big_data(
+    data_static_routes=data,
+    interface_id=wan.port_uuid,
+    next_hop_ip=wan.wan_port_ipv4_setting.get("ipv4Static").get("gateway"),
     enable=False
 )
-# Get list of devices
-omadaClient.get_devices()
-# Get a client by their MAC address
-omadaClient.get_client_by_mac("ff:ff:ff:ff:ff:ff")
-# Get all clients
-omadaClient.get_clients()
-# Get a client by its IP address
-omadaClient.get_client_by_ip("10.0.0.100")
-# Assign a fixed IP address to the client based on its MAC address
-omadaClient.set_client_fixed_address_by_mac("ff:ff:ff:ff:ff:ff", "10.0.0.100")
-# Assign a fixed IP address to the client based on its IP address
-omadaClient.set_client_fixed_address_by_ip("10.0.0.100")
-# Assign a dynamic IP address to the client
-omadaClient.set_client_dymanic_address_by_mac("ff:ff:ff:ff:ff:ff")
 ```
 
-## Advanced methods
-### Create a static route from a large amount of data
-```python
-from dotenv import load_dotenv
-import os
-from omada_client import OmadaClient
-load_dotenv()
+---
 
-def main():
-    omadaClient = OmadaClient( 
-        os.getenv("OMADA_DOMAIN"), 
-        os.getenv("OMADA_USER"), 
-        os.getenv("OMADA_PASSWORD")
-    )
+### Notes
 
-    data = [
-        {
-            "name" : "group_1",
-            "ips" : "99.99.99.99/24, 88.88.88.88/24"
-        },
-        {
-            "name" : "group_2",
-            "ips" : "99.99.99.99/24, 88.88.88.88/24"
-        }
-    ]
-    wan = omadaClient.get_wan_ports_by_desc("openwrt")
-    omadaClient.create_static_route_to_inteface_with_big_data(
-        data_static_routes=data,
-        interface_id=wan.port_uuid,
-        next_hop_ip=wan.wan_port_ipv4_setting.get("ipv4Static").get("gateway"),
-        enable=False
-    )
-if __name__ == "__main__":
-    main() 
-```
+- Replace all IPs, MAC addresses, and credentials with real values.  
+- Environment variables help keep sensitive credentials out of code.  
+- Use badges above to quickly check test status and PyPI version.
