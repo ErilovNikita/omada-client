@@ -4,8 +4,7 @@ on:
   workflow_run:
     workflows: ["🚀 Publish to PyPI"]
     branches: [main]
-    types:
-      - completed
+    types: [completed]
 
 jobs:
   release:
