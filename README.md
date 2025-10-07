@@ -68,6 +68,8 @@ print(omada.get_devices())
 |  | `get_clients()` | None | List all clients |
 |  | `get_client_by_mac(mac)` | `mac: str` | Get client by MAC |
 |  | `get_client_by_ip(ip_address)` | `ip_address: str` | Get client by IP |
+|  | `create_group_ip_v4(group_name, ip_v4_list)` | `group_name: str`, `ip_v4_list: list[GroupMemberIpv4Model]` | Create new group IPv4 addresses |
+|  | `delete_ipv4_from_group_by_name(group_name, ip_v4)` | `group_name: str`, `ip_v4: GroupMemberIpv4Model` | Remove IPv4 address from group by name  |
 | **Groups** | `get_all_groups()` | | List all groups |
 |  | `get_group_by_id(id)` | `id: str` | Get group port by ID |
 |  | `get_group_by_name(name)` | `name: str` | Get group port by Name |
