@@ -68,6 +68,9 @@ print(omada.get_devices())
 |  | `get_clients()` | None | List all clients |
 |  | `get_client_by_mac(mac)` | `mac: str` | Get client by MAC |
 |  | `get_client_by_ip(ip_address)` | `ip_address: str` | Get client by IP |
+| **Groups** | `get_all_groups()` | | List all groups |
+|  | `get_group_by_id(id)` | `id: str` | Get group port by ID |
+|  | `get_group_by_name(name)` | `name: str` | Get group port by Name |
 | **IP Assignment** | `set_client_fixed_address_by_mac(mac, ip_address=None)` | `mac: str`, `ip_address: str` | Assign fixed IP by MAC |
 |  | `set_client_fixed_address_by_ip(ip_address)` | `ip_address: str` | Assign fixed IP by IP |
 |  | `set_client_dymanic_address_by_mac(mac)` | `mac: str` | Assign dynamic IP by MAC |
