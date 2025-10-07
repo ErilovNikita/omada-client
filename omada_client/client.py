@@ -163,9 +163,17 @@ class OmadaClient:
         if group: 
             return GroupModel.model_validate(group)
 
-    def create_group(self):
-        # {"name":"123","type":0,"ipList":[{"ip":"99.99.99.99","mask":32,"description":""}],"ipv6List":null,"macAddressList":null,"portList":null,"countryList":null,"description":"","portType":null,"portMaskList":null,"domainNamePort":null}
-        return None
+    def create_group_ip_v4(self, group_name:str, ip_v4_list:list[GroupMemberIpv4Model]) -> None:
+        """Create group"""
+        data = {
+            "type" : 0,
+            "name": group_name,
+            "ipList": [member.model_dump() for member in ip_v4_list]
+        }
+
+        url = f"{self.base_url}/{self.user_id}/api/v2/sites/{self.site}/setting/profiles/groups"
+        response = self.session.post( url, headers=self.__get_headers(), json=data, verify=False)
+        response.raise_for_status()
     
     def __patch_group(
         self, 
