@@ -5,7 +5,6 @@ Permit send commands to omada controller via http calls
 
 import requests
 import math
-import json
 import urllib3
 from omada_client.types import HeaderModel, ComplexResponse, UserModel, WanPortModel, DeviceModel, ClientModel, WlanModel, GroupModel, GroupMemberIpv4Model, GroupMemberIpv6Model
 
