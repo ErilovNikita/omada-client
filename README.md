@@ -25,9 +25,10 @@ pip install omada-client
 from omada_client import OmadaClient
 
 omada = OmadaClient(
-    "OMADA_DOMAIN",   # URL of Omada WebUI
-    "OMADA_USER",     # Username
-    "OMADA_PASSWORD"  # Password
+    "OMADA_DOMAIN",    # URL of Omada WebUI
+    "OMADA_USER",      # Username
+    "OMADA_PASSWORD",  # Password
+    "SITE_ID"          # Site identify (Optional. Default: First site in list)
 )
 ```
 
@@ -43,7 +44,8 @@ load_dotenv()
 omada = OmadaClient(
     os.getenv("OMADA_DOMAIN"),
     os.getenv("OMADA_USER"),
-    os.getenv("OMADA_PASSWORD")
+    os.getenv("OMADA_PASSWORD"),
+    os.getenv("SITE_ID")
 )
 
 print(omada.get_devices())
