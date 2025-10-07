@@ -1,0 +1,45 @@
+name: 🏷 Create GitHub Release
+
+on:
+  workflow_run:
+    workflows: ["🚀 Publish to PyPI"]
+    branches: [main]
+    types:
+      - completed
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    name: Create Release
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.13
+
+      - name: Get version from pyproject.toml
+        id: get_version
+        run: |
+          version=$(grep -E '^version\s*=\s*' pyproject.toml | sed 's/version\s*=\s*"\(.*\)"/\1/')
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          echo "## 🧾 Changelog" > CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          git log -10 --pretty=format:"- %s" >> CHANGELOG.md
+          cat CHANGELOG.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: 🚀 Release v${{ steps.get_version.outputs.version }}
+          body_path: CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
