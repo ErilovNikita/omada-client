@@ -12,6 +12,16 @@ license = {text = "MIT"}
 authors = [
     {name = "Erilov Nikita", email = "minitwiks@gmail.com"}
 ]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14"
+]
 urls = {homepage = "https://github.com/ErilovNikita/omada-client"}
 dependencies = [
     "requests==2.32.3",
