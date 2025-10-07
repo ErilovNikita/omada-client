@@ -204,6 +204,17 @@ class OmadaClient:
 
         self.__patch_group(current_group.name, ip_v4_list=current_list)
 
+    def delete_ipv4_from_group_by_name(self, group_name:str, ip_v4:GroupMemberIpv4Model) -> None:
+        """Remove ip addres from group"""
+        current_group:GroupModel = self.get_group_by_name(group_name)
+        current_list:list[GroupMemberIpv4Model] = current_group.ip_list
+
+        for ip in current_list:
+            if ip_v4.ip == ip.ip:
+                current_list.remove(ip)
+
+        self.__patch_group(current_group.name, ip_v4_list=current_list)
+
     def get_wlan_by_ssid(self, ssid: str) -> WlanModel:
         """
         Get a Wlan by SSID
