@@ -111,3 +111,19 @@ class ClientModel(BaseModel):
     standard_port: str = Field(None, alias="standardPort")
     system_name: str | None = Field(None, alias="systemName")
     connect_dev_subtype: int = Field(None, alias="connectDevSubtype")
+
+
+class GroupMemberIpModel(BaseModel):
+    ip: str
+    mask: int = Field(32)
+    description: str | None = Field(None)
+
+
+class GroupModel(BaseModel):
+    groupId: str
+    site: str
+    name: str
+    ipList: list[GroupMemberIpModel]
+    count: int
+    type: int
+    resource: int
