@@ -152,6 +152,15 @@ class OmadaClient:
         )
         if group: 
             return GroupModel.model_validate(group)
+        
+    def get_group_by_name(self, name:str) -> GroupModel:
+        """Get group by name"""
+        group = next(
+            (group for group in self.get_all_groups() if group.name == name),
+            None,
+        )
+        if group: 
+            return GroupModel.model_validate(group)
 
     def patch_group(self):
         # {"name":"blacklist","type":0,"resource":0,"ipList":[{"ip":"99.99.99.99","mask":32,"description":"","key":1759846412106},{"ip":"99.99.99.98","mask":32,"key":1759846414934,"description":""}],"ipv6List":null,"macAddressList":null,"portList":null,"countryList":null,"portType":null,"portMaskList":null,"domainNamePort":null}
