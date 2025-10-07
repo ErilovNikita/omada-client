@@ -9,13 +9,13 @@ from .test_data import (
 @pytest.fixture
 def client(monkeypatch):
     """Creating a test client instance without a real connection"""
-    def fake_auth(self, login, password):
+    def fake_auth(self, login, password, site=None):
         self.session = requests.Session()
         self.session_id = "fake_session_id"
         self.csrf = "fake_token"
         self.user_id = "fake_user_id"
-        self.sites = ["default_site"]
-        self.default_site = "default_site"
+        self.sites = ["site"]
+        self.site = "site"
 
     monkeypatch.setattr(OmadaClient, "_OmadaClient__auth", fake_auth)
     return OmadaClient("https://fake.omada.local", "admin", "password")
@@ -66,7 +66,7 @@ def test_format_mac_address_invalid(client):
 )
 def test_get_all_clients(client, requests_mock, client_data):
     requests_mock.get(
-        f"https://fake.omada.local/{client.user_id}/api/v2/sites/{client.default_site}/clients", 
+        f"https://fake.omada.local/{client.user_id}/api/v2/sites/{client.site}/clients", 
         json={"result": {"data": [client_data]}}
     )
     result = client.get_clients()
@@ -82,7 +82,7 @@ def test_get_all_clients(client, requests_mock, client_data):
     ids=[f"WAN ports: {', '.join([wan['portName'] for wan in case])}" for case in WAN_PORT_CASES]
 )
 def test_get_all_wan_ports(client, requests_mock, wan_ports):
-    requests_mock.get(f"https://fake.omada.local/{client.user_id}/api/v2/sites/{client.default_site}/setting/wan/networks", json={"result": {"wanPortSettings": wan_ports}})
+    requests_mock.get(f"https://fake.omada.local/{client.user_id}/api/v2/sites/{client.site}/setting/wan/networks", json={"result": {"wanPortSettings": wan_ports}})
     result = client.get_all_wan_ports()
 
     assert isinstance(result, list)
@@ -101,7 +101,7 @@ def test_set_client_fixed_address_success(client, requests_mock, monkeypatch, cl
 
     called = {}
 
-    patch_url = f"https://fake.omada.local/{client.user_id}/api/v2/sites/{client.default_site}/clients/{fake_client_obj.mac}"
+    patch_url = f"https://fake.omada.local/{client.user_id}/api/v2/sites/{client.site}/clients/{fake_client_obj.mac}"
     def track_patch(request, context):
         called["body"] = request.json()
         return {"result": "ok"}
@@ -120,7 +120,7 @@ def test_set_client_fixed_address_success(client, requests_mock, monkeypatch, cl
 )
 def test_create_static_route(client, requests_mock, route_data):
     requests_mock.post(
-        f"https://fake.omada.local/{client.user_id}/api/v2/sites/{client.default_site}/setting/transmission/staticRoutings", 
+        f"https://fake.omada.local/{client.user_id}/api/v2/sites/{client.site}/setting/transmission/staticRoutings", 
         status_code=200, json={"result": "ok"}
     )
 

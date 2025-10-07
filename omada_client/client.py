@@ -16,20 +16,22 @@ class OmadaClient:
         - base_url: Omada instanse url
         - login: Omada password
         - password: Omada password
+        - site: Omada location (Default: First location on list)
     """
 
-    def __init__(self, base_url, login, password) -> None:
+    def __init__(self, base_url:str, login:str, password:str, site:str|None = None) -> None:
         urllib3.disable_warnings()
         self.session = requests.Session()
         self.base_url = base_url
-        self.__auth(login, password)
+        self.__auth(login, password, site)
 
-    def __auth(self, login, password):
+    def __auth(self, login:str, password:str, site:str|None = None):
         """
         Create session token
         Require:
             - login: Omada password
             - password: Omada password
+            - site: Omada location (Default: First location on list)
         """
         response = self.session.post(
             f"{self.base_url}/api/v2/login",
@@ -44,7 +46,11 @@ class OmadaClient:
 
         self.user_id = self.__get_user_data().omada_id
         self.sites = self.__get_user_data().privilege.sites
-        self.default_site = self.sites[0]
+
+        if not site: 
+            self.site = self.sites[0]
+        else:
+            self.site = site
 
     def __get_headers(self) -> dict[str, str]:
         """Get headers for a request with a CSRF token"""
@@ -111,7 +117,7 @@ class OmadaClient:
     def get_all_wan_ports(self) -> list[WanPortModel]:
         """Get a list of WAN ports"""
         response = self.__send_get_request(
-            f"/{self.user_id}/api/v2/sites/{self.default_site}/setting/wan/networks"
+            f"/{self.user_id}/api/v2/sites/{self.site}/setting/wan/networks"
         ).result
         wan_list = []
         for item in response.get("wanPortSettings"):
@@ -121,7 +127,7 @@ class OmadaClient:
     def get_all_wlan(self) -> list[WlanModel]:
         """Get a list of Wifi Networks"""
         response = self.__send_get_request(
-            f"/{self.user_id}/api/v2/sites/{self.default_site}/setting/wlans/660fccd41f61064468ff7f30/ssids?currentPage=1&currentPageSize=1000"
+            f"/{self.user_id}/api/v2/sites/{self.site}/setting/wlans/660fccd41f61064468ff7f30/ssids?currentPage=1&currentPageSize=1000"
         ).result
         wlan_list = []
         for item in response.get("data"):
@@ -184,7 +190,7 @@ class OmadaClient:
             - metricId: Metric identifier
         """
         response = self.session.post(
-            f"{self.base_url}/{self.user_id}/api/v2/sites/{self.default_site}/setting/transmission/staticRoutings",
+            f"{self.base_url}/{self.user_id}/api/v2/sites/{self.site}/setting/transmission/staticRoutings",
             headers=self.__get_headers(),
             json={
                 "name": route_name,
@@ -248,7 +254,7 @@ class OmadaClient:
 
     def get_devices(self) -> list[DeviceModel]:
         """Get list of devices"""
-        response = self.__send_get_request(f"/{self.user_id}/api/v2/sites/{self.default_site}/devices").result
+        response = self.__send_get_request(f"/{self.user_id}/api/v2/sites/{self.site}/devices").result
         device_list = []
         for item in response:
             device_list.append(DeviceModel.model_validate(item))
@@ -257,7 +263,7 @@ class OmadaClient:
     def get_clients(self) -> list[ClientModel]:
         """Get all clients"""
         response = self.__send_get_request(
-            f"/{self.user_id}/api/v2/sites/{self.default_site}/clients?currentPage=1&currentPageSize=1000&filters.active=true"
+            f"/{self.user_id}/api/v2/sites/{self.site}/clients?currentPage=1&currentPageSize=1000&filters.active=true"
         ).result
         client_list = []
         for item in response.get("data"):
@@ -272,7 +278,7 @@ class OmadaClient:
         """
         correct_mac = self.__format_mac_address(mac)
         response = self.__send_get_request(
-            f"/{self.user_id}/api/v2/sites/{self.default_site}/clients/{correct_mac}"
+            f"/{self.user_id}/api/v2/sites/{self.site}/clients/{correct_mac}"
         ).result
         return ClientModel.model_validate(response)
 
@@ -311,7 +317,7 @@ class OmadaClient:
                 }
             }
 
-            url = f"{self.base_url}/{self.user_id}/api/v2/sites/{self.default_site}/clients/{client.mac}"
+            url = f"{self.base_url}/{self.user_id}/api/v2/sites/{self.site}/clients/{client.mac}"
             response = self.session.patch( url, headers=self.__get_headers(), json=body, verify=False )
             response.raise_for_status()
             
@@ -340,6 +346,6 @@ class OmadaClient:
             raise ValueError(f"Not found device with MAC address is {mac}")
         else:
             body = {"ipSetting": {"useFixedAddr": False}}
-            url = f"{self.base_url}/{self.user_id}/api/v2/sites/{self.default_site}/clients/{correct_mac}"
+            url = f"{self.base_url}/{self.user_id}/api/v2/sites/{self.site}/clients/{correct_mac}"
             response = self.session.patch(url, headers=self.__get_headers(), json=body, verify=False)
             response.raise_for_status()
