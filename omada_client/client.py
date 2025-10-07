@@ -5,8 +5,9 @@ Permit send commands to omada controller via http calls
 
 import requests
 import math
+import json
 import urllib3
-from omada_client.types import HeaderModel, ComplexResponse, UserModel, WanPortModel, DeviceModel, ClientModel, WlanModel, GroupModel
+from omada_client.types import HeaderModel, ComplexResponse, UserModel, WanPortModel, DeviceModel, ClientModel, WlanModel, GroupModel, GroupMemberIpv4Model, GroupMemberIpv6Model
 
 
 class OmadaClient:
@@ -162,9 +163,36 @@ class OmadaClient:
         if group: 
             return GroupModel.model_validate(group)
 
-    def patch_group(self):
-        # {"name":"blacklist","type":0,"resource":0,"ipList":[{"ip":"99.99.99.99","mask":32,"description":"","key":1759846412106},{"ip":"99.99.99.98","mask":32,"key":1759846414934,"description":""}],"ipv6List":null,"macAddressList":null,"portList":null,"countryList":null,"portType":null,"portMaskList":null,"domainNamePort":null}
+    def create_group(self):
+        # {"name":"123","type":0,"ipList":[{"ip":"99.99.99.99","mask":32,"description":""}],"ipv6List":null,"macAddressList":null,"portList":null,"countryList":null,"description":"","portType":null,"portMaskList":null,"domainNamePort":null}
         return None
+    
+    def __patch_group(
+        self, 
+        name:str,
+        ip_v4_list:list[GroupMemberIpv4Model] = [],
+        ip_v6_list:list[GroupMemberIpv6Model] = [],
+    ):
+        """Update group"""
+        current_group:GroupModel = self.get_group_by_name(name)
+
+        data = {
+            "resource" : current_group.resource,
+            "type" : current_group.type,
+            "name": name,
+            "ipList": [member.model_dump() for member in ip_v4_list],
+            "ipv6List": [member.model_dump() for member in ip_v6_list],
+            "macAddressList": current_group.mac_address_list,
+            "portList": current_group.port_list,
+            "countryList": current_group.country_list,
+            "portType": current_group.port_type,
+            "portMaskList": current_group.port_mask_list,
+            "domainNamePort":current_group.domain_name_port,
+        }
+
+        url = f"{self.base_url}/{self.user_id}/api/v2/sites/{self.site}/setting/profiles/groups/0/{current_group.group_id}"
+        response = self.session.patch( url, headers=self.__get_headers(), json=data, verify=False)
+        response.raise_for_status()
 
     def get_wlan_by_ssid(self, ssid: str) -> WlanModel:
         """

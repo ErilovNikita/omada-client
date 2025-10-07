@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field, field_validator
+import time
 
 class HeaderModel(BaseModel):
     cookie: str = Field(None, alias="Cookie")
@@ -117,10 +118,12 @@ class GroupMemberIpv4Model(BaseModel):
     ip: str
     mask: int = Field(32)
     description: str = Field("")
+    key: int = Field(int(time.time())*1000)
 
 class GroupMemberIpv6Model(BaseModel):
     ip: str
     prefix: int
+    key: int = Field(int(time.time())*1000)
 
 class GroupModel(BaseModel):
     group_id: str = Field("", alias="groupId")
@@ -132,3 +135,9 @@ class GroupModel(BaseModel):
     count: int
     type: int
     resource: int
+    domain_name_port: list = Field(None, alias="domainNamePort")
+    port_mask_list: list = Field(None, alias="portMaskList")
+    port_type: int = Field(None, alias="portType")
+    country_list: list = Field(None, alias="countryList")
+    port_list: list = Field(None, alias="portList")
+    mac_address_list: list = Field(None, alias="macAddressList")
