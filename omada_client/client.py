@@ -152,6 +152,8 @@ class OmadaClient:
         )
         if group: 
             return GroupModel.model_validate(group)
+        else:
+            raise ValueError(f"Not found group with id is {id}")
         
     def get_group_by_name(self, name:str) -> GroupModel:
         """Get group by name"""
@@ -161,6 +163,8 @@ class OmadaClient:
         )
         if group: 
             return GroupModel.model_validate(group)
+        else:
+            raise ValueError(f"Not found group with name is {name}")
 
     def create_group_ip_v4(self, group_name:str, ip_v4_list:list[GroupMemberIpv4Model]) -> None:
         """Create group"""
@@ -183,44 +187,54 @@ class OmadaClient:
         """Update group"""
         current_group:GroupModel = self.get_group_by_name(group_name)
 
-        data = {
-            "resource" : current_group.resource,
-            "type" : current_group.type,
-            "name": current_group.name,
-            "ipList": [member.model_dump() for member in ip_v4_list],
-            "ipv6List": [member.model_dump() for member in ip_v6_list],
-            "macAddressList": current_group.mac_address_list,
-            "portList": current_group.port_list,
-            "countryList": current_group.country_list,
-            "portType": current_group.port_type,
-            "portMaskList": current_group.port_mask_list,
-            "domainNamePort":current_group.domain_name_port,
-        }
+        if not current_group:
+            raise ValueError(f"Not found group with name is {group_name}")
+        else:
+            data = {
+                "resource" : current_group.resource,
+                "type" : current_group.type,
+                "name": current_group.name,
+                "ipList": [member.model_dump() for member in ip_v4_list],
+                "ipv6List": [member.model_dump() for member in ip_v6_list],
+                "macAddressList": current_group.mac_address_list,
+                "portList": current_group.port_list,
+                "countryList": current_group.country_list,
+                "portType": current_group.port_type,
+                "portMaskList": current_group.port_mask_list,
+                "domainNamePort":current_group.domain_name_port,
+            }
 
-        url = f"{self.base_url}/{self.user_id}/api/v2/sites/{self.site}/setting/profiles/groups/0/{current_group.group_id}"
-        response = self.session.patch( url, headers=self.__get_headers(), json=data, verify=False)
-        response.raise_for_status()
+            url = f"{self.base_url}/{self.user_id}/api/v2/sites/{self.site}/setting/profiles/groups/0/{current_group.group_id}"
+            response = self.session.patch( url, headers=self.__get_headers(), json=data, verify=False)
+            response.raise_for_status()
 
     def add_ipv4_on_group_by_name(self, group_name:str, ip_v4_list:list[GroupMemberIpv4Model]) -> None:
         """Add ip addres on group"""
         current_group:GroupModel = self.get_group_by_name(group_name)
-        current_list:list[GroupMemberIpv4Model] = current_group.ip_list
 
-        for ip in ip_v4_list:
-            current_list.append(ip)
+        if not current_group:
+            raise ValueError(f"Not found group with name is {group_name}")
+        else:
+            current_list:list[GroupMemberIpv4Model] = current_group.ip_list
 
-        self.__patch_group(current_group.name, ip_v4_list=current_list)
+            for ip in ip_v4_list:
+                current_list.append(ip)
+
+            self.__patch_group(current_group.name, ip_v4_list=current_list)
 
     def delete_ipv4_from_group_by_name(self, group_name:str, ip_v4:GroupMemberIpv4Model) -> None:
         """Remove ip addres from group"""
         current_group:GroupModel = self.get_group_by_name(group_name)
-        current_list:list[GroupMemberIpv4Model] = current_group.ip_list
+        if not current_group:
+            raise ValueError(f"Not found group with name is {group_name}")
+        else:
+            current_list:list[GroupMemberIpv4Model] = current_group.ip_list
 
-        for ip in current_list:
-            if ip_v4.ip == ip.ip:
-                current_list.remove(ip)
+            for ip in current_list:
+                if ip_v4.ip == ip.ip:
+                    current_list.remove(ip)
 
-        self.__patch_group(current_group.name, ip_v4_list=current_list)
+            self.__patch_group(current_group.name, ip_v4_list=current_list)
 
     def get_wlan_by_ssid(self, ssid: str) -> WlanModel:
         """
