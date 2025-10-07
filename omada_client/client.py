@@ -169,17 +169,17 @@ class OmadaClient:
     
     def __patch_group(
         self, 
-        name:str,
+        group_name:str,
         ip_v4_list:list[GroupMemberIpv4Model] = [],
         ip_v6_list:list[GroupMemberIpv6Model] = [],
-    ):
+    ) -> None:
         """Update group"""
-        current_group:GroupModel = self.get_group_by_name(name)
+        current_group:GroupModel = self.get_group_by_name(group_name)
 
         data = {
             "resource" : current_group.resource,
             "type" : current_group.type,
-            "name": name,
+            "name": current_group.name,
             "ipList": [member.model_dump() for member in ip_v4_list],
             "ipv6List": [member.model_dump() for member in ip_v6_list],
             "macAddressList": current_group.mac_address_list,
@@ -193,6 +193,16 @@ class OmadaClient:
         url = f"{self.base_url}/{self.user_id}/api/v2/sites/{self.site}/setting/profiles/groups/0/{current_group.group_id}"
         response = self.session.patch( url, headers=self.__get_headers(), json=data, verify=False)
         response.raise_for_status()
+
+    def add_ipv4_on_group_by_name(self, group_name:str, ip_v4_list:list[GroupMemberIpv4Model]) -> None:
+        """Add ip addres on group"""
+        current_group:GroupModel = self.get_group_by_name(group_name)
+        current_list:list[GroupMemberIpv4Model] = current_group.ip_list
+
+        for ip in ip_v4_list:
+            current_list.append(ip)
+
+        self.__patch_group(current_group.name, ip_v4_list=current_list)
 
     def get_wlan_by_ssid(self, ssid: str) -> WlanModel:
         """
