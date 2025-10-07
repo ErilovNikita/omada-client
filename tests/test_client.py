@@ -62,7 +62,7 @@ def test_format_mac_address_invalid(client):
 @pytest.mark.parametrize(
     "client_data", 
     CLIENT_CASES, 
-    ids=[f"Client: {case["name"]}" for case in CLIENT_CASES]
+    ids=[f"Client: {case['name']}" for case in CLIENT_CASES]
 )
 def test_get_all_clients(client, requests_mock, client_data):
     requests_mock.get(
@@ -79,7 +79,7 @@ def test_get_all_clients(client, requests_mock, client_data):
 @pytest.mark.parametrize(
     "wan_ports", 
     WAN_PORT_CASES, 
-    ids=[f"WAN ports: {', '.join([wan["portName"] for wan in case])}" for case in WAN_PORT_CASES]
+    ids=[f"WAN ports: {', '.join([wan['portName'] for wan in case])}" for case in WAN_PORT_CASES]
 )
 def test_get_all_wan_ports(client, requests_mock, wan_ports):
     requests_mock.get(f"https://fake.omada.local/{client.user_id}/api/v2/sites/{client.default_site}/setting/wan/networks", json={"result": {"wanPortSettings": wan_ports}})
@@ -93,7 +93,7 @@ def test_get_all_wan_ports(client, requests_mock, wan_ports):
 @pytest.mark.parametrize(
     "client_data", 
     CLIENT_CASES, 
-    ids=[f"Client: {case["mac"]}" for case in CLIENT_CASES]
+    ids=[f"Client: {case['mac']}" for case in CLIENT_CASES]
 )
 def test_set_client_fixed_address_success(client, requests_mock, monkeypatch, client_data):
     fake_client_obj = type("FakeClient", (), client_data)()
@@ -137,7 +137,7 @@ def test_create_static_route(client, requests_mock, route_data):
 @pytest.mark.parametrize(
     "case", 
     CLIENT_CASES, 
-    ids=[f"Get {case["ip"]} by {case["mac"]}" for case in CLIENT_CASES]
+    ids=[f"Get {case['ip']} by {case['mac']}" for case in CLIENT_CASES]
 )
 def test_get_client_by_mac_success(client, monkeypatch, case):
     def fake_send_get_request(self, path):
