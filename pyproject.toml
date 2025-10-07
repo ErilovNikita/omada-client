@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "omada_client"
+version = "1.2.8"
+description = "Execute API calls to Omada Controller from python code"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Erilov Nikita", email = "minitwiks@gmail.com"}
+]
+urls = {homepage = "https://github.com/ErilovNikita/omada-client"}
+dependencies = [
+    "requests==2.32.3",
+    "urllib3==2.2.3",
+    "pydantic==2.9.2",
+    "dotenv==0.9.9",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.4.2",
+    "pytest-asyncio==1.2.0",
+    "pytest-cov==7.0.0",
+    "requests-mock==1.12.1"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
