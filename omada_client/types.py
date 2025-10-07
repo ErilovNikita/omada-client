@@ -60,7 +60,7 @@ class DeviceModel(BaseModel):
     hw_version: str = Field(None, alias="modelVersion")
     fw_version: str = Field(None, alias="firmwareVersion")
     ip: str | None
-    uptime: str
+    uptime: str | None = None
     uptime_long: int = Field(None, alias="uptimeLong")
     status: int
     last_seen: int = Field(None, alias="lastSeen")
@@ -68,12 +68,12 @@ class DeviceModel(BaseModel):
     fw_download: bool = Field(None, alias="fwDownload")
     cpu_util: int = Field(None, alias="cpuUtil")
     mem_util: int = Field(None, alias="memUtil")
-    download: int
-    upload: int
+    download: int | None = None
+    upload: int | None = None
     site: str | None
     client_num: int = Field(None, alias="clientNum")
     sn: str | None
-    category: str | None
+    category: str | None = None
     poe_remain: float = Field(None, alias="poeRemain")
     fan_status: int = Field(None, alias="fanStatus")
     poe_support: bool = Field(None, alias="poeSupport")
