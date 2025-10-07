@@ -6,7 +6,7 @@ Permit send commands to omada controller via http calls
 import requests
 import math
 import urllib3
-from omada_client.types import HeaderModel, ComplexResponse, UserModel, WanPortModel, DeviceModel, ClientModel, WlanModel
+from omada_client.types import HeaderModel, ComplexResponse, UserModel, WanPortModel, DeviceModel, ClientModel, WlanModel, GroupModel
 
 
 class OmadaClient:
@@ -133,6 +133,16 @@ class OmadaClient:
         for item in response.get("data"):
             wlan_list.append(WlanModel.model_validate(item))
         return wlan_list
+
+    def get_all_groups(self) -> list[GroupModel]:
+        """Get a list of groups"""
+        response = self.__send_get_request(
+            f"/{self.user_id}/api/v2/sites/{self.site}/setting/profiles/groups?currentPage=1&currentPageSize=1000"
+        ).result
+        group_list = []
+        for item in response.get("data"):
+            group_list.append(GroupModel.model_validate(item))
+        return group_list
 
     def get_wlan_by_ssid(self, ssid: str) -> WlanModel:
         """

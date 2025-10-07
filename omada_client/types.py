@@ -113,17 +113,22 @@ class ClientModel(BaseModel):
     connect_dev_subtype: int = Field(None, alias="connectDevSubtype")
 
 
-class GroupMemberIpModel(BaseModel):
+class GroupMemberIpv4Model(BaseModel):
     ip: str
     mask: int = Field(32)
-    description: str | None = Field(None)
+    description: str = Field("")
 
+class GroupMemberIpv6Model(BaseModel):
+    ip: str
+    prefix: int
 
 class GroupModel(BaseModel):
     groupId: str
-    site: str
+    site: str = Field("")
+    buildIn: bool = Field(False)
     name: str
-    ipList: list[GroupMemberIpModel]
+    ipList: list[GroupMemberIpv4Model] = Field([])
+    ipv6List: list[GroupMemberIpv6Model] = Field([])
     count: int
     type: int
     resource: int
