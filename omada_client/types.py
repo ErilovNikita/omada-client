@@ -15,8 +15,8 @@ class HeaderModel(BaseModel):
 
 
 class ComplexResponse(BaseModel):
-    errorCode: int | None = None
-    msg: str | None = None
+    errorCode: int | None = Field(None)
+    msg: str | None = Field(None)
     result: dict | list
 
 
