@@ -143,6 +143,19 @@ class OmadaClient:
         for item in response.get("data"):
             group_list.append(GroupModel.model_validate(item))
         return group_list
+    
+    def get_group_by_id(self, id:str) -> GroupModel:
+        """Get group by ID"""
+        group = next(
+            (group for group in self.get_all_groups() if group.group_id.lower() == id.lower()),
+            None,
+        )
+        if group: 
+            return GroupModel.model_validate(group)
+
+    def patch_group(self):
+        # {"name":"blacklist","type":0,"resource":0,"ipList":[{"ip":"99.99.99.99","mask":32,"description":"","key":1759846412106},{"ip":"99.99.99.98","mask":32,"key":1759846414934,"description":""}],"ipv6List":null,"macAddressList":null,"portList":null,"countryList":null,"portType":null,"portMaskList":null,"domainNamePort":null}
+        return None
 
     def get_wlan_by_ssid(self, ssid: str) -> WlanModel:
         """

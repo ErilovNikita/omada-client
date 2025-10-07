@@ -123,12 +123,12 @@ class GroupMemberIpv6Model(BaseModel):
     prefix: int
 
 class GroupModel(BaseModel):
-    groupId: str
+    group_id: str = Field("", alias="groupId")
     site: str = Field("")
-    buildIn: bool = Field(False)
+    build_in: bool = Field(False, alias="buildIn")
     name: str
-    ipList: list[GroupMemberIpv4Model] = Field([])
-    ipv6List: list[GroupMemberIpv6Model] = Field([])
+    ip_list: list[GroupMemberIpv4Model] = Field([], alias="ipList")
+    ip_v6_list: list[GroupMemberIpv6Model] = Field([], alias="ipv6List")
     count: int
     type: int
     resource: int
