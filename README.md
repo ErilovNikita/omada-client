@@ -9,18 +9,16 @@ Allows executing API calls to the Omada Controller from Python code.
 ](https://pypi.org/project/omada-client)
 [![Tests](https://github.com/ErilovNikita/omada-client/actions/workflows/tests.yml/badge.svg)](https://github.com/ErilovNikita/omada-client/actions/workflows/tests.yml)
 
----
 
 ## Installation
+Using python:
 ```sh
 pip install omada-client
 ```
 
----
 
 ## Quick Start
-
-### Using direct credentials
+Using direct credentials
 
 ```python
 from omada_client import OmadaClient
@@ -33,7 +31,7 @@ omada = OmadaClient(
 )
 ```
 
-### Using environment variables
+Using environment variables
 
 ```python
 from dotenv import load_dotenv
@@ -51,8 +49,6 @@ omada = OmadaClient(
 
 print(omada.get_devices())
 ```
-
----
 
 ## Methods Reference
 
@@ -78,11 +74,8 @@ print(omada.get_devices())
 |  | `set_client_fixed_address_by_ip(ip_address)` | `ip_address: str` | Assign fixed IP by IP |
 |  | `set_client_dymanic_address_by_mac(mac)` | `mac: str` | Assign dynamic IP by MAC |
 
----
-
 ## Advanced Example
-
-### Create static routes from large data sets
+Create static routes from large data sets
 
 ```python
 from dotenv import load_dotenv
@@ -112,10 +105,7 @@ omada.create_static_route_to_inteface_with_big_data(
 )
 ```
 
----
-
-### Notes
-
+## Notes
 - Replace all IPs, MAC addresses, and credentials with real values.  
 - Environment variables help keep sensitive credentials out of code.  
 - Use badges above to quickly check test status and PyPI version.
