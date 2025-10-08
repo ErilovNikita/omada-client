@@ -6,6 +6,11 @@ on:
     branches: [main]
     types: [completed]
 
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
 jobs:
   release-build:
     runs-on: ubuntu-latest
@@ -48,9 +53,6 @@ jobs:
 
     needs:
       - release-build
-
-    permissions:
-      id-token: write
 
     environment:
       name: pypi
