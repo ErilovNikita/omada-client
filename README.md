@@ -1,17 +1,18 @@
 # omada-client
 
-[![PyPI Version](https://img.shields.io/pypi/v/omada-client)](https://pypi.org/project/omada-client)
-[![PyPI Version](https://img.shields.io/pypi/pyversions/omada-client)](https://pypi.org/project/omada-client)
-[![Tests](https://github.com/ErilovNikita/omada-client/actions/workflows/tests.yml/badge.svg)](https://github.com/ErilovNikita/omada-client/actions/workflows/tests.yml)
-
-Python client for **Tp-Link Omada Controller** ([Omada Software Controller](https://www.tp-link.com/business-networking/omada-sdn-controller/omada-software-controller/)).
+> Python client for **Tp-Link Omada Controller** ([Omada Software Controller](https://www.tp-link.com/business-networking/omada-sdn-controller/omada-software-controller/)).
 Allows executing API calls to the Omada Controller from Python code.
+
+[![PyPI Version](https://img.shields.io/pypi/v/omada-client?logo=pypi&label=Release)](https://pypi.org/project/omada-client)
+[![PyPI Version](https://img.shields.io/pypi/pyversions/omada-client?logo=python&label=Python)](https://pypi.org/project/omada-client)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/omada-client?logo=pypi&label=PyPI%20-%20Downloads)
+](https://pypi.org/project/omada-client)
+[![Tests](https://github.com/ErilovNikita/omada-client/actions/workflows/tests.yml/badge.svg)](https://github.com/ErilovNikita/omada-client/actions/workflows/tests.yml)
 
 ---
 
 ## Installation
-
-```bash
+```sh
 pip install omada-client
 ```
 
