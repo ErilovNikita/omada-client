@@ -1,7 +1,6 @@
 # omada-client
 
-> Python client for **Tp-Link Omada Controller** ([Omada Software Controller](https://www.tp-link.com/business-networking/omada-sdn-controller/omada-software-controller/)).
-Allows executing API calls to the Omada Controller from Python code.
+> Python client for **Tp-Link Omada Controller** ([Omada Software Controller](https://www.tp-link.com/business-networking/omada-sdn-controller/omada-software-controller/)). Allows executing API calls to the Omada Controller from Python code.
 
 [![PyPI Version](https://img.shields.io/pypi/v/omada-client?logo=pypi&label=Release)](https://pypi.org/project/omada-client)
 [![PyPI Version](https://img.shields.io/pypi/pyversions/omada-client?logo=python&label=Python)](https://pypi.org/project/omada-client)
@@ -9,6 +8,11 @@ Allows executing API calls to the Omada Controller from Python code.
 ](https://pypi.org/project/omada-client)
 [![Tests](https://github.com/ErilovNikita/omada-client/actions/workflows/tests.yml/badge.svg)](https://github.com/ErilovNikita/omada-client/actions/workflows/tests.yml)
 
+![](docs/preview.png)
+
+Library created for automating and integrating with TP-Link Omada SDN Controllers. Unlike raw HTTP scripts or outdated wrappers, this library provides a clean, typed interface that enables developers and network engineers to manage Omada infrastructure with minimal effort and maximum reliability.
+
+It abstracts away authentication, session handling, CSRF tokens, and endpoint routing, allowing you to focus on logic instead of network plumbing. The library is fully compatible with modern Python environments (>=3.11), supports structured data models via Pydantic, and includes utilities for batching large requests, safely manipulating network routes, and managing connected devices.
 
 ## Installation
 Using python:
