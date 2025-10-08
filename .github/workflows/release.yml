@@ -2,7 +2,7 @@ name: 🏷 Create GitHub Release
 
 on:
   workflow_run:
-    workflows: ["🚀 Publish to PyPI"]
+    workflows: ["🚀 Publish Python Package"]
     branches: [main]
     types: [completed]
 
