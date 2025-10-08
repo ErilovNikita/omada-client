@@ -1,25 +1,27 @@
 # omada-client
 
-[![PyPI Version](https://img.shields.io/pypi/v/omada-client)](https://pypi.org/project/omada-client)
-[![PyPI Version](https://img.shields.io/pypi/pyversions/omada-client)](https://pypi.org/project/omada-client)
+> Python client for **Tp-Link Omada Controller** ([Omada Software Controller](https://www.tp-link.com/business-networking/omada-sdn-controller/omada-software-controller/)). Allows executing API calls to the Omada Controller from Python code.
+
+[![PyPI Version](https://img.shields.io/pypi/v/omada-client?logo=pypi&label=Release)](https://pypi.org/project/omada-client)
+[![PyPI Version](https://img.shields.io/pypi/pyversions/omada-client?logo=python&label=Python)](https://pypi.org/project/omada-client)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/omada-client?logo=pypi&label=PyPI%20-%20Downloads)](https://pypi.org/project/omada-client)
 [![Tests](https://github.com/ErilovNikita/omada-client/actions/workflows/tests.yml/badge.svg)](https://github.com/ErilovNikita/omada-client/actions/workflows/tests.yml)
 
-Python client for **Tp-Link Omada Controller** ([Omada Software Controller](https://www.tp-link.com/business-networking/omada-sdn-controller/omada-software-controller/)).
-Allows executing API calls to the Omada Controller from Python code.
+![](docs/preview.png)
 
----
+Library created for automating and integrating with TP-Link Omada SDN Controllers. Unlike raw HTTP scripts or outdated wrappers, this library provides a clean, typed interface that enables developers and network engineers to manage Omada infrastructure with minimal effort and maximum reliability.
+
+It abstracts away authentication, session handling, CSRF tokens, and endpoint routing, allowing you to focus on logic instead of network plumbing. The library is fully compatible with modern Python environments (>=3.11), supports structured data models via Pydantic, and includes utilities for batching large requests, safely manipulating network routes, and managing connected devices.
 
 ## Installation
-
-```bash
+Using python:
+```sh
 pip install omada-client
 ```
 
----
 
 ## Quick Start
-
-### Using direct credentials
+Using direct credentials
 
 ```python
 from omada_client import OmadaClient
@@ -32,7 +34,7 @@ omada = OmadaClient(
 )
 ```
 
-### Using environment variables
+Using environment variables
 
 ```python
 from dotenv import load_dotenv
@@ -50,8 +52,6 @@ omada = OmadaClient(
 
 print(omada.get_devices())
 ```
-
----
 
 ## Methods Reference
 
@@ -77,11 +77,8 @@ print(omada.get_devices())
 |  | `set_client_fixed_address_by_ip(ip_address)` | `ip_address: str` | Assign fixed IP by IP |
 |  | `set_client_dymanic_address_by_mac(mac)` | `mac: str` | Assign dynamic IP by MAC |
 
----
-
 ## Advanced Example
-
-### Create static routes from large data sets
+Create static routes from large data sets
 
 ```python
 from dotenv import load_dotenv
@@ -111,10 +108,7 @@ omada.create_static_route_to_inteface_with_big_data(
 )
 ```
 
----
-
-### Notes
-
+## Notes
 - Replace all IPs, MAC addresses, and credentials with real values.  
 - Environment variables help keep sensitive credentials out of code.  
 - Use badges above to quickly check test status and PyPI version.
