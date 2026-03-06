@@ -62,13 +62,13 @@ class OmadaClient:
         assert self.auth is not None, "Authorization failed, result is None"
         return HeaderModel.from_auth(self.auth).model_dump(by_alias=True)
     
-    def __check_pagination_params(self, page: int, page_size: int) -> None:
+    def check_pagination_params(self, page: int, page_size: int) -> None:
        if page < 1:
           raise ValueError("The \"page\" parameter must be greater than 1.")
        if page_size < 1 or page_size > 1000:
           raise ValueError("The \"page_size\" parameter must be between 1 and 1000.")
 
-    def __send_get_api_request(self, path:str, model: Type[T], params: dict[str, Any] = {}) -> T:
+    def send_get_api_request(self, path:str, model: Type[T], params: dict[str, Any] = {}) -> T:
         response = self.session.get(
             f"{self.base_url}/openapi/v1/{path}",
             headers=self.__get_headers(),
@@ -81,13 +81,13 @@ class OmadaClient:
         return model.model_validate_json(response.text)
 
     class SiteGroup:
-        def __init__(self, client: "OmadaClient"):
+        def __init__(self, client:"OmadaClient"):
             self.client = client
 
         def get_site_list(self, page: int = 1, page_size: int = 1000) -> PaginationGeneric[Site] | None:
-            self.client.__check_pagination_params(page, page_size)
+            self.client.check_pagination_params(page, page_size)
 
-            response_model: SiteListPaginationResponse = self.client.__send_get_api_request(
+            response_model: SiteListPaginationResponse = self.client.send_get_api_request(
                 path=f"{self.client.omadacId}/sites",
                 params={"page": page, "pageSize": page_size},
                 model=SiteListPaginationResponse
