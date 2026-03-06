@@ -88,6 +88,22 @@ class OmadaClient:
 
         return model.model_validate_json(response.text)
 
+    def format_mac_address(self, mac: str) -> str:
+        """
+        Formats the mac address in the required format
+        Require:
+            - mac: String value of MAC address
+        """
+        mac_cleaned = "".join(c for c in mac if c.isalnum())
+        if len(mac_cleaned) != 12:
+            raise ValueError("Invalid MAC address: length must be 12 characters.")
+
+        mac_formatted = "-".join(
+            mac_cleaned[i : i + 2].upper() for i in range(0, len(mac_cleaned), 2)
+        )
+
+        return mac_formatted
+
     class SiteGroup:
         def __init__(self, client:"OmadaClient"):
             self.client = client
@@ -128,15 +144,38 @@ class OmadaClient:
 
             return response_model.result
         
-        def get_info(self, mac: str) -> Client | None:
+        def get_info_by_mac(self, mac: str) -> Client | None:
             self.client.check_site()
-            
+
             response_model: ComplexResponseGeneric[Client] = self.client.send_get_api_request(
                 path=f"sites/{self.client.site_id}/clients/{mac}",
                 model=ComplexResponseGeneric[Client]
             )
 
             return response_model.result
+        
+        def get_by_ip(self, ip: str) -> Client | None:
+            self.client.check_site()
+
+            page: int = 1
+            page_size: int = 100
+
+            while True:
+                response: PaginationGeneric[Client] | None = self.get_list(page, page_size)
+
+                if response is None or response.data is None:
+                    return None
+
+                for client in response.data:
+                    if client.ip == ip:
+                        return client
+
+                if page * page_size >= response.total_rows:
+                    break
+
+                page += 1
+
+            return None
 
     # def __divider(self, data: str, separator: str, size: int = 16) -> dict:
     #     """
@@ -163,22 +202,6 @@ class OmadaClient:
 
     #         result.append(data_part)
     #     return result
-
-    # def __format_mac_address(self, mac: str) -> str:
-    #     """
-    #     Formats the mac address in the required format
-    #     Require:
-    #         - mac: String value of MAC address
-    #     """
-    #     mac_cleaned = "".join(c for c in mac if c.isalnum())
-    #     if len(mac_cleaned) != 12:
-    #         raise ValueError("Invalid MAC address: length must be 12 characters.")
-
-    #     mac_formatted = "-".join(
-    #         mac_cleaned[i : i + 2].upper() for i in range(0, len(mac_cleaned), 2)
-    #     )
-
-    #     return mac_formatted
 
     # def get_all_wan_ports(self) -> list[WanPortModel]:
     #     """Get a list of WAN ports"""
