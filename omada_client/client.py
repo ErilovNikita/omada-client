@@ -29,6 +29,7 @@ class OmadaClient:
         self.omadac_id = omadac_id
         self.__authorize(client_id, client_secret)
 
+        self.Request = self.RequestGroup(self)
         self.Site = self.SiteGroup(self)
         self.Client = self.ClientGroup(self)
 
@@ -58,11 +59,6 @@ class OmadaClient:
         authorization_response_model:ComplexResponseGeneric[Authorization] = ComplexResponseGeneric[Authorization].model_validate_json(response.text)
         self.auth = authorization_response_model.result
 
-    def __get_headers(self) -> dict[str, str]:
-        """Get headers for a request with a token"""
-        assert self.auth is not None, "Authorization failed, result is None"
-        return HeaderModel.from_auth(self.auth).model_dump(by_alias=True)
-    
     def check_pagination_params(self, page: int, page_size: int) -> None:
        if page < 1:
           raise ValueError("The \"page\" parameter must be greater than 1.")
@@ -75,18 +71,6 @@ class OmadaClient:
     def check_site(self) -> None:
        if not self.site_id:
           raise ValueError("\"self.site_id\" is not set")
-
-    def send_get_api_request(self, path:str, model: Type[T], params: dict[str, Any] = {}) -> T:
-        response = self.session.get(
-            f"{self.base_url}/openapi/v1/{self.omadac_id}/{path}",
-            headers=self.__get_headers(),
-            params=params,
-            verify=False,
-        )
-
-        response.raise_for_status()
-
-        return model.model_validate_json(response.text)
 
     def format_mac_address(self, mac: str) -> str:
         """
@@ -104,15 +88,40 @@ class OmadaClient:
 
         return mac_formatted
 
+    class RequestGroup:
+        def __init__(self, client:"OmadaClient"):
+            self.client = client
+
+        def __get_headers(self) -> dict[str, str]:
+            assert self.client.auth is not None, "Authorization failed, result is None"
+            return HeaderModel.from_auth(self.client.auth).model_dump(by_alias=True)
+    
+        def __get_generic_path(self) -> str:
+            return f"{self.client.base_url}/openapi/v1/{self.client.omadac_id}"
+
+        def GET(self, path:str, model: Type[T], params: dict[str, Any] = {}) -> T:
+            response = self.client.session.get(
+                f"{self.__get_generic_path()}/{path}",
+                headers=self.__get_headers(),
+                params=params,
+                verify=False,
+            )
+
+            response.raise_for_status()
+
+            return model.model_validate_json(response.text)
+
+
     class SiteGroup:
         def __init__(self, client:"OmadaClient"):
             self.client = client
+            self.request = client.Request
             self.base_path = "sites"
 
         def get_list(self, page: int = 1, page_size: int = 1000) -> PaginationGeneric[Site] | None:
             self.client.check_pagination_params(page, page_size)
 
-            response_model: ComplexResponseGeneric[PaginationGeneric[Site]] = self.client.send_get_api_request(
+            response_model: ComplexResponseGeneric[PaginationGeneric[Site]] = self.request.GET(
                 path=f"{self.base_path}",
                 params={"page": page, "pageSize": page_size},
                 model=ComplexResponseGeneric[PaginationGeneric[Site]]
@@ -121,7 +130,7 @@ class OmadaClient:
             return response_model.result
         
         def get_info(self, site_id: str) -> Site | None:
-            response_model: ComplexResponseGeneric[Site] = self.client.send_get_api_request(
+            response_model: ComplexResponseGeneric[Site] = self.request.GET(
                 path=f"{self.base_path}/{site_id}",
                 model=ComplexResponseGeneric[Site]
             )
@@ -131,12 +140,13 @@ class OmadaClient:
     class ClientGroup:
         def __init__(self, client:"OmadaClient"):
             self.client = client
+            self.request = client.Request
 
         def get_list(self, page: int = 1, page_size: int = 1000) -> PaginationGeneric[Client] | None:
             self.client.check_site()
             self.client.check_pagination_params(page, page_size)
 
-            response_model: ComplexResponseGeneric[PaginationGeneric[Client]] = self.client.send_get_api_request(
+            response_model: ComplexResponseGeneric[PaginationGeneric[Client]] = self.request.GET(
                 path=f"sites/{self.client.site_id}/clients",
                 params={"page": page, "pageSize": page_size},
                 model=ComplexResponseGeneric[PaginationGeneric[Client]]
@@ -147,7 +157,7 @@ class OmadaClient:
         def get_info_by_mac(self, mac: str) -> Client | None:
             self.client.check_site()
 
-            response_model: ComplexResponseGeneric[Client] = self.client.send_get_api_request(
+            response_model: ComplexResponseGeneric[Client] = self.request.GET(
                 path=f"sites/{self.client.site_id}/clients/{mac}",
                 model=ComplexResponseGeneric[Client]
             )
