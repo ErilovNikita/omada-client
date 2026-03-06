@@ -29,6 +29,8 @@ class OmadaClient:
         self.omadac_id = omadac_id
         self.__authorize(client_id, client_secret)
 
+        self.site = self.SiteGroup(self)
+
     def __authorize(self, client_id:str, client_secret:str):
         """
         Create session token
@@ -55,8 +57,6 @@ class OmadaClient:
         authorization_response_model:AuthorizationResponse = AuthorizationResponse.model_validate_json(response.text)
         self.auth = authorization_response_model.result
 
-        self.site = self.SiteGroup(self)
-
     def __get_headers(self) -> dict[str, str]:
         """Get headers for a request with a token"""
         assert self.auth is not None, "Authorization failed, result is None"
@@ -70,7 +70,7 @@ class OmadaClient:
 
     def send_get_api_request(self, path:str, model: Type[T], params: dict[str, Any] = {}) -> T:
         response = self.session.get(
-            f"{self.base_url}/openapi/v1/{path}",
+            f"{self.base_url}/openapi/v1/{self.omadac_id}/{path}",
             headers=self.__get_headers(),
             params=params,
             verify=False,
@@ -88,7 +88,7 @@ class OmadaClient:
             self.client.check_pagination_params(page, page_size)
 
             response_model: SiteListPaginationResponse = self.client.send_get_api_request(
-                path=f"{self.client.omadac_id}/sites",
+                path="sites",
                 params={"page": page, "pageSize": page_size},
                 model=SiteListPaginationResponse
             )
@@ -97,12 +97,11 @@ class OmadaClient:
         
         def get_info(self, site_id: str) -> Site | None:
             response_model: SiteResponse = self.client.send_get_api_request(
-                path=f"{self.client.omadac_id}/sites/{site_id}",
+                path=f"sites/{site_id}",
                 model=SiteResponse
             )
 
             return response_model.result
-        
 
     # def __divider(self, data: str, separator: str, size: int = 16) -> dict:
     #     """
