@@ -25,7 +25,7 @@ class PaginationGeneric(BaseModel, Generic[T]):
 class Site(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
-    siteId: str
+    site_id: str = Field(alias="siteId")
     name: str
     region: str
     timeZone: str
