@@ -129,6 +129,8 @@ class OmadaClient:
             return response_model.result
         
         def get_info(self, mac: str) -> Client | None:
+            self.client.check_site()
+            
             response_model: ComplexResponseGeneric[Client] = self.client.send_get_api_request(
                 path=f"sites/{self.client.site_id}/clients/{mac}",
                 model=ComplexResponseGeneric[Client]
