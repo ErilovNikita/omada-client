@@ -6,7 +6,7 @@ Permit send commands to omada controller via http calls
 import requests
 # import math
 import urllib3
-from omada_client.types import AuthorizationResponse, HeaderModel
+from omada_client.types import AuthorizationResponse, HeaderModel, SiteListPaginationResponse, PaginationGeneric, Site
 # from omada_client.types import HeaderModel, ComplexResponse, UserModel, WanPortModel, DeviceModel, ClientModel, WlanModel, GroupModel, GroupMemberIpv4Model, GroupMemberIpv6Model
 
 
@@ -56,24 +56,32 @@ class OmadaClient:
     def __get_headers(self) -> dict[str, str]:
         """Get headers for a request with a token"""
         assert self.auth is not None, "Authorization failed, result is None"
+        return HeaderModel.from_auth(self.auth).model_dump(by_alias=True)
+    
+    def __check_pagination_params(self, page: int, pageSize: int) -> None:
+       if page < 1:
+          raise ValueError("The \"page\" parameter must be greater than 1.")
+       if pageSize < 1 or pageSize > 1000:
+          raise ValueError("The \"pageSize\" parameter must be between 1 and 1000.")
 
-        header = HeaderModel(token=f"AccessToken=${self.auth.accessToken}")
-        return header.model_dump(by_alias=True)
+    def get_site_list(self, page: int = 1, pageSize: int = 1000) -> PaginationGeneric[Site] | None:
+        self.__check_pagination_params(page, pageSize)
 
-    # def __send_get_request(self, path):
-    #     """Basic method for sending GET requests"""
-    #     response = self.session.get(
-    #         f"{self.base_url}{path}",
-    #         headers=self.__get_headers(),
-    #         verify=False,
-    #     )
-    #     response.raise_for_status()
-    #     return ComplexResponse.model_validate_json(response.text)
+        response = self.session.get(
+            f"{self.base_url}/openapi/v1/{self.omadacId}/sites",
+            headers=self.__get_headers(),
+            params={
+                "page": page,
+                "pageSize" : pageSize
+            },
+            verify=False,
+        )
 
-    # def __get_user_data(self) -> dict:
-    #     """Get information about the current user"""
-    #     response = self.__send_get_request("/api/v2/current/users").result
-    #     return UserModel.model_validate(response)
+        response.raise_for_status()
+
+        model:SiteListPaginationResponse = SiteListPaginationResponse.model_validate_json(response.text)
+        return model.result
+        
 
     # def __divider(self, data: str, separator: str, size: int = 16) -> dict:
     #     """

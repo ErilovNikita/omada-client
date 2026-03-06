@@ -1,5 +1,5 @@
 from typing import Generic, TypeVar
-from pydantic import BaseModel, Field #, field_validator
+from pydantic import BaseModel, Field, ConfigDict#, field_validator
 #import time
 
 T = TypeVar("T")
@@ -15,11 +15,46 @@ class Authorization(BaseModel):
     expiresIn: int
     refreshToken: str
 
+class PaginationGeneric(BaseModel, Generic[T]):
+    totalRows: int
+    currentPage: int
+    currentSize: int
+    data: list[T] | None = Field(None)
+
+class Site(BaseModel):
+    siteId: str
+    name: str
+    region: str
+    timeZone: str
+    scenario: str
+    type: int
+    supportES: bool
+    supportL2: bool
+    sitePublicIp: str
+
+class SiteListPaginationResponse(ComplexResponseGeneric[PaginationGeneric[Site]]):
+    pass
+
 class AuthorizationResponse(ComplexResponseGeneric[Authorization]):
     pass
 
+class ListObjectResponse(ComplexResponseGeneric[Authorization]):
+    pass
+
 class HeaderModel(BaseModel):
-    token: str = Field(None)
+    Authorization: str
+
+    model_config = ConfigDict(
+        populate_by_name=True,
+        alias_generator=None
+    )
+    
+    @classmethod
+    def from_auth(cls, auth: "Authorization") -> "HeaderModel":
+        return cls(Authorization=f"AccessToken={auth.accessToken}")
+
+    def get_headers(self) -> dict[str, str]:
+        return self.model_dump(by_alias=True)
 
 
 # class PrivilegeModel(BaseModel):
