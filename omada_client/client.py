@@ -55,6 +55,8 @@ class OmadaClient:
         authorization_response_model:AuthorizationResponse = AuthorizationResponse.model_validate_json(response.text)
         self.auth = authorization_response_model.result
 
+        self.site = self.SiteGroup(self)
+
     def __get_headers(self) -> dict[str, str]:
         """Get headers for a request with a token"""
         assert self.auth is not None, "Authorization failed, result is None"
@@ -78,16 +80,20 @@ class OmadaClient:
 
         return model.model_validate_json(response.text)
 
-    def get_site_list(self, page: int = 1, page_size: int = 1000) -> PaginationGeneric[Site] | None:
-        self.__check_pagination_params(page, page_size)
+    class SiteGroup:
+        def __init__(self, client: "OmadaClient"):
+            self.client = client
 
-        response_model: SiteListPaginationResponse = self.__send_get_api_request(
-            path=f"{self.omadacId}/sites",
-            params={"page": page, "pageSize": page_size},
-            model=SiteListPaginationResponse
-        )
+        def get_site_list(self, page: int = 1, page_size: int = 1000) -> PaginationGeneric[Site] | None:
+            self.client.__check_pagination_params(page, page_size)
 
-        return response_model.result
+            response_model: SiteListPaginationResponse = self.client.__send_get_api_request(
+                path=f"{self.client.omadacId}/sites",
+                params={"page": page, "pageSize": page_size},
+                model=SiteListPaginationResponse
+            )
+
+            return response_model.result
         
 
     # def __divider(self, data: str, separator: str, size: int = 16) -> dict:
