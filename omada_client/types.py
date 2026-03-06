@@ -9,20 +9,20 @@ class ComplexResponseGeneric(BaseModel, Generic[T]):
     msg: str | None = Field(None)
     result: T | None = Field(None)
 
-class Authorization(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    
-    access_token: str = Field(alias="accessToken")
-    expires_in: int = Field(alias="expiresIn")
-    refresh_token: str = Field(alias="refreshToken")
-
 class PaginationGeneric(BaseModel, Generic[T]):
     total_rows: int = Field(alias="totalRows")
     current_page: int = Field(alias="currentPage")
     current_size: int = Field(alias="currentSize")
     data: list[T] | None = Field(None)
 
-class Site(BaseModel):
+class AuthorizationModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
+    access_token: str = Field(alias="accessToken")
+    expires_in: int = Field(alias="expiresIn")
+    refresh_token: str = Field(alias="refreshToken")
+
+class SiteModel(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     site_id: str = Field(alias="siteId")
@@ -35,7 +35,7 @@ class Site(BaseModel):
     support_l2: bool = Field(alias="supportL2")
     site_public_ip: str | None = Field(default=None, alias="sitePublicIp")
 
-class Client(BaseModel):
+class ClientModel(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
     mac: str
@@ -59,7 +59,6 @@ class Client(BaseModel):
     system_name: str | None = Field(default=None, alias="systemName")
     dhcp_lease_time: int | None = Field(default=None, alias="dhcpLeaseTime")
 
-
 class HeaderModel(BaseModel):
     Authorization: str
 
@@ -69,7 +68,7 @@ class HeaderModel(BaseModel):
     )
     
     @classmethod
-    def from_auth(cls, auth: "Authorization") -> "HeaderModel":
+    def from_auth(cls, auth:AuthorizationModel) -> "HeaderModel":
         return cls(Authorization=f"AccessToken={auth.access_token}")
 
     def get_headers(self) -> dict[str, str]:

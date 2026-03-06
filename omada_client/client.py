@@ -8,8 +8,9 @@ import requests
 # import math
 import urllib3
 
-from omada_client.types import T, Authorization, Client, ComplexResponseGeneric, HeaderModel, PaginationGeneric, Site
-# from omada_client.types import HeaderModel, ComplexResponse, UserModel, WanPortModel, DeviceModel, ClientModel, WlanModel, GroupModel, GroupMemberIpv4Model, GroupMemberIpv6Model
+from omada_client.types import T, ComplexResponseGeneric, PaginationGeneric
+from omada_client.types import AuthorizationModel, ClientModel, HeaderModel, SiteModel
+# from omada_client.types import UserModel, WanPortModel, DeviceModel, WlanModel, GroupModel, GroupMemberIpv4Model, GroupMemberIpv6Model
 
 
 class OmadaClient:
@@ -33,7 +34,7 @@ class OmadaClient:
         self.Site = self.SiteGroup(self)
         self.Client = self.ClientGroup(self)
 
-    def __authorize(self, client_id:str, client_secret:str):
+    def __authorize(self, client_id:str, client_secret:str) -> None:
         """
         Create session token
         Require:
@@ -56,7 +57,7 @@ class OmadaClient:
 
         response.raise_for_status()
 
-        authorization_response_model:ComplexResponseGeneric[Authorization] = ComplexResponseGeneric[Authorization].model_validate_json(response.text)
+        authorization_response_model:ComplexResponseGeneric[AuthorizationModel] = ComplexResponseGeneric[AuthorizationModel].model_validate_json(response.text)
         self.auth = authorization_response_model.result
 
     def set_site(self, site_id:str) -> None:
@@ -118,21 +119,21 @@ class OmadaClient:
             self.request = client.Request
             self.base_path = "sites"
 
-        def get_list(self, page: int = 1, page_size: int = 1000) -> PaginationGeneric[Site] | None:
+        def get_list(self, page: int = 1, page_size: int = 1000) -> PaginationGeneric[SiteModel] | None:
             self.request.check_pagination_params(page, page_size)
 
-            response_model: ComplexResponseGeneric[PaginationGeneric[Site]] = self.request.GET(
+            response_model: ComplexResponseGeneric[PaginationGeneric[SiteModel]] = self.request.GET(
                 path=f"{self.base_path}",
                 params={"page": page, "pageSize": page_size},
-                model=ComplexResponseGeneric[PaginationGeneric[Site]]
+                model=ComplexResponseGeneric[PaginationGeneric[SiteModel]]
             )
 
             return response_model.result
         
-        def get_info(self, site_id: str) -> Site | None:
-            response_model: ComplexResponseGeneric[Site] = self.request.GET(
+        def get_info(self, site_id: str) -> SiteModel | None:
+            response_model: ComplexResponseGeneric[SiteModel] = self.request.GET(
                 path=f"{self.base_path}/{site_id}",
-                model=ComplexResponseGeneric[Site]
+                model=ComplexResponseGeneric[SiteModel]
             )
 
             return response_model.result
@@ -142,36 +143,36 @@ class OmadaClient:
             self.client = client
             self.request = client.Request
 
-        def get_list(self, page: int = 1, page_size: int = 1000) -> PaginationGeneric[Client] | None:
+        def get_list(self, page: int = 1, page_size: int = 1000) -> PaginationGeneric[ClientModel] | None:
             self.client.check_site()
             self.request.check_pagination_params(page, page_size)
 
-            response_model: ComplexResponseGeneric[PaginationGeneric[Client]] = self.request.GET(
+            response_model: ComplexResponseGeneric[PaginationGeneric[ClientModel]] = self.request.GET(
                 path=f"sites/{self.client.site_id}/clients",
                 params={"page": page, "pageSize": page_size},
-                model=ComplexResponseGeneric[PaginationGeneric[Client]]
+                model=ComplexResponseGeneric[PaginationGeneric[ClientModel]]
             )
 
             return response_model.result
         
-        def get_info_by_mac(self, mac: str) -> Client | None:
+        def get_info_by_mac(self, mac: str) -> ClientModel | None:
             self.client.check_site()
 
-            response_model: ComplexResponseGeneric[Client] = self.request.GET(
+            response_model: ComplexResponseGeneric[ClientModel] = self.request.GET(
                 path=f"sites/{self.client.site_id}/clients/{mac}",
-                model=ComplexResponseGeneric[Client]
+                model=ComplexResponseGeneric[ClientModel]
             )
 
             return response_model.result
         
-        def get_by_ip(self, ip: str) -> Client | None:
+        def get_by_ip(self, ip: str) -> ClientModel | None:
             self.client.check_site()
 
             page: int = 1
             page_size: int = 100
 
             while True:
-                response: PaginationGeneric[Client] | None = self.get_list(page, page_size)
+                response: PaginationGeneric[ClientModel] | None = self.get_list(page, page_size)
 
                 if response is None or response.data is None:
                     return None
