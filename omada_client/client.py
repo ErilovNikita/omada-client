@@ -3,10 +3,12 @@ Omada python API client.
 Permit send commands to omada controller via http calls
 """
 
+from typing import Any, Type
 import requests
 # import math
 import urllib3
-from omada_client.types import AuthorizationResponse, HeaderModel, SiteListPaginationResponse, PaginationGeneric, Site
+
+from omada_client.types import T, AuthorizationResponse, HeaderModel, SiteListPaginationResponse, PaginationGeneric, Site
 # from omada_client.types import HeaderModel, ComplexResponse, UserModel, WanPortModel, DeviceModel, ClientModel, WlanModel, GroupModel, GroupMemberIpv4Model, GroupMemberIpv6Model
 
 
@@ -58,29 +60,34 @@ class OmadaClient:
         assert self.auth is not None, "Authorization failed, result is None"
         return HeaderModel.from_auth(self.auth).model_dump(by_alias=True)
     
-    def __check_pagination_params(self, page: int, pageSize: int) -> None:
+    def __check_pagination_params(self, page: int, page_size: int) -> None:
        if page < 1:
           raise ValueError("The \"page\" parameter must be greater than 1.")
-       if pageSize < 1 or pageSize > 1000:
-          raise ValueError("The \"pageSize\" parameter must be between 1 and 1000.")
+       if page_size < 1 or page_size > 1000:
+          raise ValueError("The \"page_size\" parameter must be between 1 and 1000.")
 
-    def get_site_list(self, page: int = 1, pageSize: int = 1000) -> PaginationGeneric[Site] | None:
-        self.__check_pagination_params(page, pageSize)
-
+    def __send_get_api_request(self, path:str, model: Type[T], params: dict[str, Any] = {}) -> T:
         response = self.session.get(
-            f"{self.base_url}/openapi/v1/{self.omadacId}/sites",
+            f"{self.base_url}/openapi/v1/{path}",
             headers=self.__get_headers(),
-            params={
-                "page": page,
-                "pageSize" : pageSize
-            },
+            params=params,
             verify=False,
         )
 
         response.raise_for_status()
 
-        model:SiteListPaginationResponse = SiteListPaginationResponse.model_validate_json(response.text)
-        return model.result
+        return model.model_validate_json(response.text)
+
+    def get_site_list(self, page: int = 1, page_size: int = 1000) -> PaginationGeneric[Site] | None:
+        self.__check_pagination_params(page, page_size)
+
+        response_model: SiteListPaginationResponse = self.__send_get_api_request(
+            path=f"{self.omadacId}/sites",
+            params={"page": page, "pageSize": page_size},
+            model=SiteListPaginationResponse
+        )
+
+        return response_model.result
         
 
     # def __divider(self, data: str, separator: str, size: int = 16) -> dict:

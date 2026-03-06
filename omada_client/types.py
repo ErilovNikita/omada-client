@@ -2,7 +2,7 @@ from typing import Generic, TypeVar
 from pydantic import BaseModel, Field, ConfigDict#, field_validator
 #import time
 
-T = TypeVar("T")
+T = TypeVar("T", bound=BaseModel)
 
 class ComplexResponseGeneric(BaseModel, Generic[T]):
     errorCode: int | None = Field(None)
