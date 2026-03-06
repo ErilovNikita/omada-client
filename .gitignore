@@ -53,6 +53,7 @@ coverage.xml
 cover/
 examples
 examples/*
+*.BAK
 
 # Translations
 *.mo
