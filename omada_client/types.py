@@ -5,21 +5,21 @@ from pydantic import BaseModel, Field, ConfigDict#, field_validator
 T = TypeVar("T", bound=BaseModel)
 
 class ComplexResponseGeneric(BaseModel, Generic[T]):
-    errorCode: int | None = Field(None)
+    error_code: int | None = Field(alias="errorCode", default=None)
     msg: str | None = Field(None)
     result: T | None = Field(None)
 
 class Authorization(BaseModel):
     model_config = ConfigDict(extra="ignore")
     
-    accessToken: str
-    expiresIn: int
-    refreshToken: str
+    access_token: str = Field(alias="accessToken")
+    expires_in: int = Field(alias="expiresIn")
+    refresh_token: str = Field(alias="refreshToken")
 
 class PaginationGeneric(BaseModel, Generic[T]):
-    totalRows: int
-    currentPage: int
-    currentSize: int
+    total_rows: int = Field(alias="totalRows")
+    current_page: int = Field(alias="currentPage")
+    current_size: int = Field(alias="currentSize")
     data: list[T] | None = Field(None)
 
 class Site(BaseModel):
@@ -28,12 +28,12 @@ class Site(BaseModel):
     site_id: str = Field(alias="siteId")
     name: str
     region: str
-    timeZone: str
+    time_zone: str = Field(alias="timeZone")
     scenario: str
     type: int
-    supportES: bool
-    supportL2: bool
-    sitePublicIp: str | None = None
+    support_es: bool = Field(alias="supportES")
+    support_l2: bool = Field(alias="supportL2")
+    site_public_ip: str | None = Field(default=None, alias="sitePublicIp")
 
 class SiteListPaginationResponse(ComplexResponseGeneric[PaginationGeneric[Site]]):
     pass
@@ -57,7 +57,7 @@ class HeaderModel(BaseModel):
     
     @classmethod
     def from_auth(cls, auth: "Authorization") -> "HeaderModel":
-        return cls(Authorization=f"AccessToken={auth.accessToken}")
+        return cls(Authorization=f"AccessToken={auth.access_token}")
 
     def get_headers(self) -> dict[str, str]:
         return self.model_dump(by_alias=True)
