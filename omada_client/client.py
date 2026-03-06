@@ -59,12 +59,6 @@ class OmadaClient:
         authorization_response_model:ComplexResponseGeneric[Authorization] = ComplexResponseGeneric[Authorization].model_validate_json(response.text)
         self.auth = authorization_response_model.result
 
-    def check_pagination_params(self, page: int, page_size: int) -> None:
-       if page < 1:
-          raise ValueError("The \"page\" parameter must be greater than 1.")
-       if page_size < 1 or page_size > 1000:
-          raise ValueError("The \"page_size\" parameter must be between 1 and 1000.")
-       
     def set_site(self, site_id:str) -> None:
         self.site_id = site_id
 
@@ -98,6 +92,13 @@ class OmadaClient:
     
         def __get_generic_path(self) -> str:
             return f"{self.client.base_url}/openapi/v1/{self.client.omadac_id}"
+        
+        def check_pagination_params(self, page: int, page_size: int) -> None:
+            if page < 1:
+                raise ValueError("The \"page\" parameter must be greater than 1.")
+            if page_size < 1 or page_size > 1000:
+                raise ValueError("The \"page_size\" parameter must be between 1 and 1000.")
+       
 
         def GET(self, path:str, model: Type[T], params: dict[str, Any] = {}) -> T:
             response = self.client.session.get(
@@ -111,7 +112,6 @@ class OmadaClient:
 
             return model.model_validate_json(response.text)
 
-
     class SiteGroup:
         def __init__(self, client:"OmadaClient"):
             self.client = client
@@ -119,7 +119,7 @@ class OmadaClient:
             self.base_path = "sites"
 
         def get_list(self, page: int = 1, page_size: int = 1000) -> PaginationGeneric[Site] | None:
-            self.client.check_pagination_params(page, page_size)
+            self.request.check_pagination_params(page, page_size)
 
             response_model: ComplexResponseGeneric[PaginationGeneric[Site]] = self.request.GET(
                 path=f"{self.base_path}",
@@ -144,7 +144,7 @@ class OmadaClient:
 
         def get_list(self, page: int = 1, page_size: int = 1000) -> PaginationGeneric[Client] | None:
             self.client.check_site()
-            self.client.check_pagination_params(page, page_size)
+            self.request.check_pagination_params(page, page_size)
 
             response_model: ComplexResponseGeneric[PaginationGeneric[Client]] = self.request.GET(
                 path=f"sites/{self.client.site_id}/clients",
