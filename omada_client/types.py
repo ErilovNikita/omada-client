@@ -10,8 +10,9 @@ class ComplexResponseGeneric(BaseModel, Generic[T]):
     result: T | None = Field(None)
 
 class Authorization(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    
     accessToken: str
-    tokenType: str
     expiresIn: int
     refreshToken: str
 
@@ -22,6 +23,8 @@ class PaginationGeneric(BaseModel, Generic[T]):
     data: list[T] | None = Field(None)
 
 class Site(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     siteId: str
     name: str
     region: str
@@ -30,9 +33,12 @@ class Site(BaseModel):
     type: int
     supportES: bool
     supportL2: bool
-    sitePublicIp: str
+    sitePublicIp: str | None = None
 
 class SiteListPaginationResponse(ComplexResponseGeneric[PaginationGeneric[Site]]):
+    pass
+
+class SiteResponse(ComplexResponseGeneric[Site]):
     pass
 
 class AuthorizationResponse(ComplexResponseGeneric[Authorization]):

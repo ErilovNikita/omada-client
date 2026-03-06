@@ -8,7 +8,7 @@ import requests
 # import math
 import urllib3
 
-from omada_client.types import T, AuthorizationResponse, HeaderModel, SiteListPaginationResponse, PaginationGeneric, Site
+from omada_client.types import T, AuthorizationResponse, HeaderModel, SiteListPaginationResponse, PaginationGeneric, Site, SiteResponse
 # from omada_client.types import HeaderModel, ComplexResponse, UserModel, WanPortModel, DeviceModel, ClientModel, WlanModel, GroupModel, GroupMemberIpv4Model, GroupMemberIpv6Model
 
 
@@ -22,11 +22,11 @@ class OmadaClient:
         - client_secret: Omada API client_secret
     """
 
-    def __init__(self, base_url:str, omadacId:str, client_id:str, client_secret:str) -> None:
+    def __init__(self, base_url:str, omadac_id:str, client_id:str, client_secret:str) -> None:
         urllib3.disable_warnings()
         self.session = requests.Session()
         self.base_url = base_url
-        self.omadacId = omadacId
+        self.omadac_id = omadac_id
         self.__authorize(client_id, client_secret)
 
     def __authorize(self, client_id:str, client_secret:str):
@@ -43,7 +43,7 @@ class OmadaClient:
                 "grant_type": "client_credentials"
             },
             json={
-                "omadacId": self.omadacId,
+                "omadacId": self.omadac_id,
                 "client_id": client_id,
                 "client_secret": client_secret
             },
@@ -88,9 +88,17 @@ class OmadaClient:
             self.client.check_pagination_params(page, page_size)
 
             response_model: SiteListPaginationResponse = self.client.send_get_api_request(
-                path=f"{self.client.omadacId}/sites",
+                path=f"{self.client.omadac_id}/sites",
                 params={"page": page, "pageSize": page_size},
                 model=SiteListPaginationResponse
+            )
+
+            return response_model.result
+        
+        def get_info(self, site_id: str) -> Site | None:
+            response_model: SiteResponse = self.client.send_get_api_request(
+                path=f"{self.client.omadac_id}/sites/{site_id}",
+                model=SiteResponse
             )
 
             return response_model.result
