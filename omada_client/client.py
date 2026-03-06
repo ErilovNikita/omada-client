@@ -83,12 +83,13 @@ class OmadaClient:
     class SiteGroup:
         def __init__(self, client:"OmadaClient"):
             self.client = client
+            self.base_path = "sites"
 
         def get_list(self, page: int = 1, page_size: int = 1000) -> PaginationGeneric[Site] | None:
             self.client.check_pagination_params(page, page_size)
 
             response_model: SiteListPaginationResponse = self.client.send_get_api_request(
-                path="sites",
+                path=f"{self.base_path}",
                 params={"page": page, "pageSize": page_size},
                 model=SiteListPaginationResponse
             )
@@ -97,7 +98,7 @@ class OmadaClient:
         
         def get_info(self, site_id: str) -> Site | None:
             response_model: SiteResponse = self.client.send_get_api_request(
-                path=f"sites/{site_id}",
+                path=f"{self.base_path}/{site_id}",
                 model=SiteResponse
             )
 
