@@ -84,7 +84,7 @@ class OmadaClient:
         def __init__(self, client:"OmadaClient"):
             self.client = client
 
-        def get_site_list(self, page: int = 1, page_size: int = 1000) -> PaginationGeneric[Site] | None:
+        def get_list(self, page: int = 1, page_size: int = 1000) -> PaginationGeneric[Site] | None:
             self.client.check_pagination_params(page, page_size)
 
             response_model: SiteListPaginationResponse = self.client.send_get_api_request(
