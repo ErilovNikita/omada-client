@@ -451,39 +451,6 @@ class OmadaClient:
     #         device_list.append(DeviceModel.model_validate(item))
     #     return device_list
 
-    # def get_clients(self) -> list[ClientModel]:
-    #     """Get all clients"""
-    #     response = self.__send_get_request(
-    #         f"/{self.user_id}/api/v2/sites/{self.site}/clients?currentPage=1&currentPageSize=1000&filters.active=true"
-    #     ).result
-    #     client_list = []
-    #     for item in response.get("data"):
-    #         client_list.append(ClientModel.model_validate(item))
-    #     return client_list
-
-    # def get_client_by_mac(self, mac: str) -> ClientModel:
-    #     """
-    #     Get a client by their MAC address
-    #     Require:
-    #         - mac: String value of MAC address
-    #     """
-    #     correct_mac = self.__format_mac_address(mac)
-    #     response = self.__send_get_request(
-    #         f"/{self.user_id}/api/v2/sites/{self.site}/clients/{correct_mac}"
-    #     ).result
-    #     return ClientModel.model_validate(response)
-
-    # def get_client_by_ip(self, ip_address: str) -> ClientModel:
-    #     """
-    #     Get a client by its IP address
-    #     Require:
-    #         - ip_address: String value of IP address
-    #     """
-    #     for client in self.get_clients():
-    #         if client.ip == ip_address:
-    #             return ClientModel.model_validate(client)
-    #     return None
-
     # def set_client_fixed_address_by_mac(self, mac: str, ip_address: str = None) -> None:
     #     """
     #     Assign a fixed IP address to the client based on its MAC address
