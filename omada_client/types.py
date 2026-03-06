@@ -18,18 +18,8 @@ class Authorization(BaseModel):
 class AuthorizationResponse(ComplexResponseGeneric[Authorization]):
     pass
 
-# class HeaderModel(BaseModel):
-#     cookie: str = Field(None, alias="Cookie")
-#     token: str = Field(None, alias="Csrf-Token")
-
-#     @field_validator("cookie", mode="before")
-#     def add_cookie_prefix(cls, value):
-#         if value and not value.startswith("TPOMADA_SESSIONID="):
-#             return f"TPOMADA_SESSIONID={value}"
-#         return value
-
-#     class Config:
-#         populate_by_name = True
+class HeaderModel(BaseModel):
+    token: str = Field(None)
 
 
 # class PrivilegeModel(BaseModel):

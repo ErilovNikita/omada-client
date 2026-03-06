@@ -6,7 +6,7 @@ Permit send commands to omada controller via http calls
 import requests
 # import math
 import urllib3
-from omada_client.types import AuthorizationResponse
+from omada_client.types import AuthorizationResponse, HeaderModel
 # from omada_client.types import HeaderModel, ComplexResponse, UserModel, WanPortModel, DeviceModel, ClientModel, WlanModel, GroupModel, GroupMemberIpv4Model, GroupMemberIpv6Model
 
 
@@ -49,12 +49,16 @@ class OmadaClient:
         )
 
         response.raise_for_status()
-        self.auth = AuthorizationResponse.model_validate_json(response.text).result
 
-    # def __get_headers(self) -> dict[str, str]:
-    #     """Get headers for a request with a CSRF token"""
-    #     header = HeaderModel(token=self.csrf, cookie=self.session_id)
-    #     return header.model_dump(by_alias=True)
+        authorization_response_model:AuthorizationResponse = AuthorizationResponse.model_validate_json(response.text)
+        self.auth = authorization_response_model.result
+
+    def __get_headers(self) -> dict[str, str]:
+        """Get headers for a request with a token"""
+        assert self.auth is not None, "Authorization failed, result is None"
+
+        header = HeaderModel(token=f"AccessToken=${self.auth.accessToken}")
+        return header.model_dump(by_alias=True)
 
     # def __send_get_request(self, path):
     #     """Basic method for sending GET requests"""
