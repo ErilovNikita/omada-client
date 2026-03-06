@@ -8,7 +8,7 @@ import requests
 # import math
 import urllib3
 
-from omada_client.types import T, AuthorizationResponse, HeaderModel, SiteListPaginationResponse, PaginationGeneric, Site, SiteResponse
+from omada_client.types import T, Authorization, Client, ComplexResponseGeneric, HeaderModel, PaginationGeneric, Site
 # from omada_client.types import HeaderModel, ComplexResponse, UserModel, WanPortModel, DeviceModel, ClientModel, WlanModel, GroupModel, GroupMemberIpv4Model, GroupMemberIpv6Model
 
 
@@ -29,7 +29,8 @@ class OmadaClient:
         self.omadac_id = omadac_id
         self.__authorize(client_id, client_secret)
 
-        self.site = self.SiteGroup(self)
+        self.Site = self.SiteGroup(self)
+        self.Client = self.ClientGroup(self)
 
     def __authorize(self, client_id:str, client_secret:str):
         """
@@ -54,7 +55,7 @@ class OmadaClient:
 
         response.raise_for_status()
 
-        authorization_response_model:AuthorizationResponse = AuthorizationResponse.model_validate_json(response.text)
+        authorization_response_model:ComplexResponseGeneric[Authorization] = ComplexResponseGeneric[Authorization].model_validate_json(response.text)
         self.auth = authorization_response_model.result
 
     def __get_headers(self) -> dict[str, str]:
@@ -67,6 +68,13 @@ class OmadaClient:
           raise ValueError("The \"page\" parameter must be greater than 1.")
        if page_size < 1 or page_size > 1000:
           raise ValueError("The \"page_size\" parameter must be between 1 and 1000.")
+       
+    def set_site(self, site_id:str) -> None:
+        self.site_id = site_id
+
+    def check_site(self) -> None:
+       if not self.site_id:
+          raise ValueError("\"self.site_id\" is not set")
 
     def send_get_api_request(self, path:str, model: Type[T], params: dict[str, Any] = {}) -> T:
         response = self.session.get(
@@ -88,18 +96,42 @@ class OmadaClient:
         def get_list(self, page: int = 1, page_size: int = 1000) -> PaginationGeneric[Site] | None:
             self.client.check_pagination_params(page, page_size)
 
-            response_model: SiteListPaginationResponse = self.client.send_get_api_request(
+            response_model: ComplexResponseGeneric[PaginationGeneric[Site]] = self.client.send_get_api_request(
                 path=f"{self.base_path}",
                 params={"page": page, "pageSize": page_size},
-                model=SiteListPaginationResponse
+                model=ComplexResponseGeneric[PaginationGeneric[Site]]
             )
 
             return response_model.result
         
         def get_info(self, site_id: str) -> Site | None:
-            response_model: SiteResponse = self.client.send_get_api_request(
+            response_model: ComplexResponseGeneric[Site] = self.client.send_get_api_request(
                 path=f"{self.base_path}/{site_id}",
-                model=SiteResponse
+                model=ComplexResponseGeneric[Site]
+            )
+
+            return response_model.result
+        
+    class ClientGroup:
+        def __init__(self, client:"OmadaClient"):
+            self.client = client
+
+        def get_list(self, page: int = 1, page_size: int = 1000) -> PaginationGeneric[Client] | None:
+            self.client.check_site()
+            self.client.check_pagination_params(page, page_size)
+
+            response_model: ComplexResponseGeneric[PaginationGeneric[Client]] = self.client.send_get_api_request(
+                path=f"sites/{self.client.site_id}/clients",
+                params={"page": page, "pageSize": page_size},
+                model=ComplexResponseGeneric[PaginationGeneric[Client]]
+            )
+
+            return response_model.result
+        
+        def get_info(self, mac: str) -> Client | None:
+            response_model: ComplexResponseGeneric[Client] = self.client.send_get_api_request(
+                path=f"sites/{self.client.site_id}/clients/{mac}",
+                model=ComplexResponseGeneric[Client]
             )
 
             return response_model.result

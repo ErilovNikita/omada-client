@@ -35,17 +35,30 @@ class Site(BaseModel):
     support_l2: bool = Field(alias="supportL2")
     site_public_ip: str | None = Field(default=None, alias="sitePublicIp")
 
-class SiteListPaginationResponse(ComplexResponseGeneric[PaginationGeneric[Site]]):
-    pass
+class Client(BaseModel):
+    model_config = ConfigDict(extra="ignore")
 
-class SiteResponse(ComplexResponseGeneric[Site]):
-    pass
+    mac: str
+    name: str | None = None
+    host_name: str | None = Field(default=None, alias="hostName")
+    vendor: str | None = None
+    device_type: str | None = Field(default=None, alias="deviceType")
+    device_category: str | None = Field(default=None, alias="deviceCategory")
+    ip: str | None = None
+    connect_type: str | int | None = Field(default=None, alias="connectType")
+    connected_to_wireless_router: bool | None = Field(default=None, alias="connectedToWirelessRouter")
+    wireless: bool | None = None
+    ssid: str | None = None
+    signal_level: int | None = Field(default=None, alias="signalLevel")
+    ap_name: str | None = Field(default=None, alias="apName")
+    uptime: int | None = None
+    last_seen: int | None = Field(default=None, alias="lastSeen")
+    blocked: bool | None = None
+    guest: bool | None = None
+    active: bool | None = None
+    system_name: str | None = Field(default=None, alias="systemName")
+    dhcp_lease_time: int | None = Field(default=None, alias="dhcpLeaseTime")
 
-class AuthorizationResponse(ComplexResponseGeneric[Authorization]):
-    pass
-
-class ListObjectResponse(ComplexResponseGeneric[Authorization]):
-    pass
 
 class HeaderModel(BaseModel):
     Authorization: str
