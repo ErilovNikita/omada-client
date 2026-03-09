@@ -42,7 +42,7 @@ class SiteModel(BaseModel):
 class IpSettingModel(BaseModel):
     use_fixed_addr: bool | None = Field(default=None, alias="useFixedAddr")
     net_id: str | None = Field(default=None, alias="netId")
-    ip: str | None
+    ip: str | None = Field(default=None)
 
 class ClientModel(BaseModel):
     model_config = ConfigDict(extra="ignore")

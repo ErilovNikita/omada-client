@@ -241,6 +241,25 @@ class OmadaClient:
 
             return response_model
         
+        def __block_unblock(self, mac:str, block_turn_on:bool) -> None:
+            self.client.check_site()
+
+            mode:str = "block" if block_turn_on else "unblock"
+
+            response_model: ComplexResponseGeneric[Any] = self.request.POST(
+                path=f"sites/{self.client.site_id}/clients/{mac}/{mode}",
+                model=ComplexResponseGeneric[Any]
+            )
+
+            if response_model.msg != 'Success.':
+                raise ValueError(f"{response_model.error_code} {response_model.msg}")
+        
+        def block(self, mac: str) -> None:
+            self.__block_unblock(mac, True)
+
+        def unblock(self, mac: str) -> None:
+            self.__block_unblock(mac, False)
+
 
     class WlanGroup:
         def __init__(self, client:"OmadaClient"):
