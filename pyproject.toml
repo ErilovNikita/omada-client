@@ -22,7 +22,6 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14"
 ]
-urls = {homepage = "https://github.com/ErilovNikita/omada-client"}
 dependencies = [
     "requests==2.32.3",
     "urllib3==2.2.3",
@@ -37,6 +36,9 @@ dev = [
     "pytest-cov==7.0.0",
     "requests-mock==1.12.1"
 ]
+
+[project.urls]
+Homepage = "https://github.com/ErilovNikita/omada-client"
 
 [tool.setuptools.packages.find]
 where = ["."]

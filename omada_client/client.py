@@ -18,7 +18,7 @@ class OmadaClient:
     OmadaClient class.
     Require:
         - base_url: Omada API url
-        - omadacId: Omada API omadacId
+        - omadac_id: Omada API omadac_id
         - client_id: Omada API client_id
         - client_secret: Omada API client_secret
     """
