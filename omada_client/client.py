@@ -391,7 +391,7 @@ class OmadaClient:
             if response_model.msg != 'Success.':
                 raise ValueError(f"{response_model.error_code} {response_model.msg}")
             
-        def create_static_route_with_big_data(self, config: dict[str, Any]) -> None:
+        def bulk_create_static_routes(self, config: dict[str, Any]) -> None:
             self.client.check_site()
 
             config_model = StaticRouteBulkModel.model_validate(config)
