@@ -8,7 +8,7 @@ import requests
 # import math
 import urllib3
 
-from omada_client.types import M, ComplexResponseGeneric, InternetModel, PaginationGeneric, SsidListModel, SsidModel, WlanModel
+from omada_client.types import M, ComplexResponseGeneric, InternetModel, PaginationGeneric, SsidListModel, SsidModel, WanModel, WlanModel
 from omada_client.types import AuthorizationModel, ClientModel, HeaderModel, SiteModel
 # from omada_client.types import UserModel, WanPortModel, DeviceModel, WlanModel, GroupModel, GroupMemberIpv4Model, GroupMemberIpv6Model
 
@@ -247,7 +247,7 @@ class OmadaClient:
             self.client = client
             self.request = client.Request
 
-        def get_info(self) -> InternetModel | None:
+        def get_info_all(self) -> InternetModel | None:
             self.client.check_site()
 
             response_model: ComplexResponseGeneric[InternetModel] = self.request.GET(
@@ -256,6 +256,30 @@ class OmadaClient:
             )
 
             return response_model.result
+        
+        def get_info_by_name(self, wan_name:str) -> WanModel | None:
+            response = self.get_info_all()
+
+            if response:
+                internet_info:InternetModel = response
+                
+                for wan in internet_info.wan_port_settings:
+                    if wan.port_name == wan_name:
+                        return wan
+
+            return None
+        
+        def get_info_by_description(self, wan_description:str) -> WanModel | None:
+            response = self.get_info_all()
+
+            if response:
+                internet_info:InternetModel = response
+                
+                for wan in internet_info.wan_port_settings:
+                    if wan.port_description == wan_description:
+                        return wan
+
+            return None
 
     # def __divider(self, data: str, separator: str, size: int = 16) -> dict:
     #     """
@@ -404,42 +428,6 @@ class OmadaClient:
     #                 current_list.remove(ip)
 
     #         self.__patch_group(current_group.name, ip_v4_list=current_list)
-
-    # def get_wlan_by_ssid(self, ssid: str) -> WlanModel:
-    #     """
-    #     Get a Wlan by SSID
-    #     Require:
-    #         - ssid: Wi-Fi SSID
-    #     """
-    #     wlan_list = self.get_all_wlan()
-    #     return next(
-    #         (wlan for wlan in wlan_list if wlan.name.lower() == ssid.lower()),
-    #         None,
-    #     )
-
-    # def get_wan_ports_by_name(self, port_name: str) -> WanPortModel:
-    #     """
-    #     Get WAN port by its name
-    #     Require:
-    #         - port_name: WAN port name
-    #     """
-    #     wan_list = self.get_all_wan_ports()
-    #     return next(
-    #         (wan for wan in wan_list if wan.port_name.lower() == port_name.lower()),
-    #         None,
-    #     )
-
-    # def get_wan_ports_by_desc(self, port_decr: str) -> WanPortModel:
-    #     """
-    #     Get WAN port by description field
-    #     Require:
-    #         - port_decr: Description field in WAN
-    #     """
-    #     wan_list = self.get_all_wan_ports()
-    #     return next(
-    #         (wan for wan in wan_list if wan.port_desc.lower() == port_decr.lower()),
-    #         None,
-    #     )
 
     # def create_static_route(
     #     self,
