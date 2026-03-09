@@ -36,6 +36,11 @@ class SiteModel(BaseModel):
     support_l2: bool = Field(alias="supportL2")
     site_public_ip: str | None = Field(default=None, alias="sitePublicIp")
 
+class IpSettingModel(BaseModel):
+    use_fixed_addr: bool | None = Field(default=None, alias="useFixedAddr")
+    net_id: str | None = Field(default=None, alias="netId")
+    ip: str | None
+
 class ClientModel(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
@@ -50,6 +55,7 @@ class ClientModel(BaseModel):
     connected_to_wireless_router: bool | None = Field(default=None, alias="connectedToWirelessRouter")
     wireless: bool | None = None
     ssid: str | None = None
+    ip_setting: IpSettingModel | None = Field(default=None, alias="ipSetting")
     signal_level: int | None = Field(default=None, alias="signalLevel")
     ap_name: str | None = Field(default=None, alias="apName")
     uptime: int | None = None

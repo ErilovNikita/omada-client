@@ -8,7 +8,7 @@ import requests
 # import math
 import urllib3
 
-from omada_client.types import M, ComplexResponseGeneric, InternetModel, PaginationGeneric, SsidListModel, SsidModel, WanModel, WlanModel
+from omada_client.types import M, ComplexResponseGeneric, InternetModel, IpSettingModel, PaginationGeneric, SsidListModel, SsidModel, WanModel, WlanModel
 from omada_client.types import AuthorizationModel, ClientModel, HeaderModel, SiteModel
 # from omada_client.types import UserModel, WanPortModel, DeviceModel, WlanModel, GroupModel, GroupMemberIpv4Model, GroupMemberIpv6Model
 
@@ -126,6 +126,19 @@ class OmadaClient:
             response.raise_for_status()
 
             return model.model_validate_json(response.text)
+        
+        def PATCH(self, path:str, model: Type[M], data: dict[str, Any] = {}, params: dict[str, Any] = {}) -> M:
+            response = self.client.session.patch(
+                f"{self.__get_generic_path()}/{path}",
+                headers=self.__get_headers(),
+                params=params,
+                json=data,
+                verify=False,
+            )
+
+            response.raise_for_status()
+
+            return model.model_validate_json(response.text)
 
     class SiteGroup:
         def __init__(self, client:"OmadaClient"):
@@ -193,7 +206,7 @@ class OmadaClient:
 
                 for client in response.data:
                     if client.ip == ip:
-                        return client
+                        return self.get_info_by_mac(client.mac)
 
                 if page * page_size >= response.total_rows:
                     break
@@ -201,6 +214,21 @@ class OmadaClient:
                 page += 1
 
             return None
+
+        def set_ip_settings(self, mac: str, data:dict[str, Any]) -> Any:
+            self.client.check_site()
+
+            mac_valid:str = self.client.format_mac_address(mac)
+            data_valid:IpSettingModel = IpSettingModel.model_validate(data)
+
+            response_model: ComplexResponseGeneric[Any] = self.request.PATCH(
+                path=f"network/sites/{self.client.site_id}/cmd/clients/{mac_valid}/update-ipSetting",
+                data=data_valid.model_dump(by_alias=True),
+                model=ComplexResponseGeneric[Any]
+            )
+
+            return response_model
+        
 
     class WlanGroup:
         def __init__(self, client:"OmadaClient"):
@@ -241,7 +269,6 @@ class OmadaClient:
 
             return response_model.result
         
-
     class WanGroup:
         def __init__(self, client:"OmadaClient"):
             self.client = client
@@ -306,26 +333,6 @@ class OmadaClient:
 
     #         result.append(data_part)
     #     return result
-
-    # def get_all_wan_ports(self) -> list[WanPortModel]:
-    #     """Get a list of WAN ports"""
-    #     response = self.__send_get_request(
-    #         f"/{self.user_id}/api/v2/sites/{self.site}/setting/wan/networks"
-    #     ).result
-    #     wan_list = []
-    #     for item in response.get("wanPortSettings"):
-    #         wan_list.append(WanPortModel.model_validate(item))
-    #     return wan_list
-
-    # def get_all_wlan(self) -> list[WlanModel]:
-    #     """Get a list of Wifi Networks"""
-    #     response = self.__send_get_request(
-    #         f"/{self.user_id}/api/v2/sites/{self.site}/setting/wlans/660fccd41f61064468ff7f30/ssids?currentPage=1&currentPageSize=1000"
-    #     ).result
-    #     wlan_list = []
-    #     for item in response.get("data"):
-    #         wlan_list.append(WlanModel.model_validate(item))
-    #     return wlan_list
 
     # def get_all_groups(self) -> list[GroupModel]:
     #     """Get a list of groups"""
@@ -510,68 +517,3 @@ class OmadaClient:
     #                     enable,
     #                     metricId,
     #                 )
-
-    # def get_devices(self) -> list[DeviceModel]:
-    #     """Get list of devices"""
-    #     response = self.__send_get_request(f"/{self.user_id}/api/v2/sites/{self.site}/devices").result
-    #     device_list = []
-    #     for item in response:
-    #         device_list.append(DeviceModel.model_validate(item))
-    #     return device_list
-
-    # def set_client_fixed_address_by_mac(self, mac: str, ip_address: str = None) -> None:
-    #     """
-    #     Assign a fixed IP address to the client based on its MAC address
-    #     Require:
-    #         - mac: String value of MAC address
-    #         - ip_address: String value of IP address
-    #     """
-    #     correct_mac = self.__format_mac_address(mac)
-    #     client = self.get_client_by_mac(correct_mac)
-
-    #     if not client:
-    #         raise ValueError(f"Not found device with MAC address is {mac}")
-    #     else:
-    #         if not ip_address:
-    #             ip_address = client.ip
-
-    #         body = {
-    #             "ipSetting": {
-    #                 "useFixedAddr": True,
-    #                 "netId": client.ip_setting.get("netId"),
-    #                 "ip": ip_address,
-    #             }
-    #         }
-
-    #         url = f"{self.base_url}/{self.user_id}/api/v2/sites/{self.site}/clients/{client.mac}"
-    #         response = self.session.patch( url, headers=self.__get_headers(), json=body, verify=False )
-    #         response.raise_for_status()
-            
-    # def set_client_fixed_address_by_ip(self, ip_address: str) -> None:
-    #     """
-    #     Assign a fixed IP address to the client based on its IP address
-    #     Require:
-    #         - ip_address: String value of IP address
-    #     """
-    #     client = self.get_client_by_ip(ip_address)
-    #     if not client:
-    #         raise ValueError(f"Not found device with IP address is {ip_address}")
-    #     else:
-    #         self.set_client_fixed_address_by_mac(client.mac)
-            
-    # def set_client_dymanic_address_by_mac(self, mac: str) -> None:
-    #     """
-    #     Assign a dynamic IP address to the client
-    #     Require:
-    #         - mac: String value of MAC address
-    #     """
-    #     correct_mac = self.__format_mac_address(mac)
-    #     client = self.get_client_by_mac(correct_mac)
-
-    #     if not client:
-    #         raise ValueError(f"Not found device with MAC address is {mac}")
-    #     else:
-    #         body = {"ipSetting": {"useFixedAddr": False}}
-    #         url = f"{self.base_url}/{self.user_id}/api/v2/sites/{self.site}/clients/{correct_mac}"
-    #         response = self.session.patch(url, headers=self.__get_headers(), json=body, verify=False)
-    #         response.raise_for_status()
