@@ -8,7 +8,7 @@ import requests
 # import math
 import urllib3
 
-from omada_client.types import T, ComplexResponseGeneric, PaginationGeneric
+from omada_client.types import T, ComplexResponseGeneric, InternetModel, PaginationGeneric
 from omada_client.types import AuthorizationModel, ClientModel, HeaderModel, SiteModel
 # from omada_client.types import UserModel, WanPortModel, DeviceModel, WlanModel, GroupModel, GroupMemberIpv4Model, GroupMemberIpv6Model
 
@@ -33,6 +33,8 @@ class OmadaClient:
         self.Request = self.RequestGroup(self)
         self.Site = self.SiteGroup(self)
         self.Client = self.ClientGroup(self)
+        self.Wan = self.WanGroup(self)
+        self.Wlan = self.WlanGroup(self)
 
     def __authorize(self, client_id:str, client_secret:str) -> None:
         """
@@ -187,6 +189,26 @@ class OmadaClient:
                 page += 1
 
             return None
+
+    class WlanGroup:
+        def __init__(self, client:"OmadaClient"):
+            self.client = client
+            self.request = client.Request
+
+    class WanGroup:
+        def __init__(self, client:"OmadaClient"):
+            self.client = client
+            self.request = client.Request
+
+        def get_info(self) -> InternetModel | None:
+            self.client.check_site()
+
+            response_model: ComplexResponseGeneric[InternetModel] = self.request.GET(
+                path=f"sites/{self.client.site_id}/internet",
+                model=ComplexResponseGeneric[InternetModel]
+            )
+
+            return response_model.result
 
     # def __divider(self, data: str, separator: str, size: int = 16) -> dict:
     #     """

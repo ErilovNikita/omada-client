@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar
 from pydantic import BaseModel, Field, ConfigDict#, field_validator
 #import time
 
@@ -74,6 +74,87 @@ class HeaderModel(BaseModel):
     def get_headers(self) -> dict[str, str]:
         return self.model_dump(by_alias=True)
 
+class WanModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    class Ipv4SettingModel(BaseModel):
+        model_config = ConfigDict(extra="ignore")
+
+        class DhcpModel(BaseModel):
+            model_config = ConfigDict(extra="ignore")
+
+            unicast_dhcp: bool | None = Field(default=None, alias="unicastDhcp")
+            primary_dns: str | None = Field(default=None, alias="primaryDns")
+            secondary_dns: str | None = Field(default=None, alias="secondaryDns")
+            mtu: int | None = None
+            wan_multiple_ips: list[Any] = Field(default_factory=list, alias="wanMultipleIps")
+            dhcp_options: list[Any] = Field(default_factory=list, alias="dhcpOptions")
+
+        proto_type: int | None = Field(default=None, alias="protoType")
+        vlan_id: int | None = Field(default=None, alias="vlanId")
+        qos_tag_enable: bool | None = Field(default=None, alias="qosTagEnable")
+        vlan_priority: int | None = Field(default=None, alias="vlanPriority")
+        ipv4_static: Any | None = Field(default=None, alias="ipv4Static")
+        ipv4_dhcp: DhcpModel | None = Field(default=None, alias="ipv4Dhcp")
+        ipv4_pppoe: Any | None = Field(default=None, alias="ipv4Pppoe")
+        ipv4_l2tp: Any | None = Field(default=None, alias="ipv4L2tp")
+        ipv4_pptp: Any | None = Field(default=None, alias="ipv4Pptp")
+        ipv4_pppoa: Any | None = Field(default=None, alias="ipv4Pppoa")
+        ipv4_ipoa: Any | None = Field(default=None, alias="ipv4Ipoa")
+
+    class Ipv6SettingModel(BaseModel):
+        model_config = ConfigDict(extra="ignore")
+
+        enable: bool | None = None
+        proto_type: int | None = Field(default=None, alias="protoType")
+        ipv6_dynamic: Any | None = Field(default=None, alias="ipv6Dynamic")
+        ipv6_pppoe: Any | None = Field(default=None, alias="ipv6Pppoe")
+        ipv6_tunnel: Any | None = Field(default=None, alias="ipv6Tunnel")
+        ipv6_static: Any | None = Field(default=None, alias="ipv6Static")
+
+    class MacSettingModel(BaseModel):
+        model_config = ConfigDict(extra="ignore")
+
+        method: int | None = None
+        mac: str | None = None
+
+    port_id: str | None = Field(default=None, alias="portId")
+    port_name: str | None = Field(default=None, alias="portName")
+    port_description: str | None = Field(default=None, alias="portDescription")
+    wan_port_ipv4_setting: Ipv4SettingModel | None = Field(default=None, alias="wanPortIpv4Setting")
+    wan_port_ipv6_setting: Ipv6SettingModel | None = Field(default=None, alias="wanPortIpv6Setting")
+    wan_port_mac_setting: MacSettingModel | None = Field(default=None, alias="wanPortMacSetting")
+
+
+class InternetModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    class WanBalanceModel(BaseModel):
+        model_config = ConfigDict(extra="ignore")
+
+        weights: list[int] = Field(default_factory=list)
+        app_opt_routing: bool | None = Field(default=None, alias="appOptRouting")
+        link_backup: bool | None = Field(default=None, alias="linkBackup")
+
+    omadac_id: str | None = Field(default=None, alias="omadacId")
+    site_id: str | None = Field(default=None, alias="siteId")
+    enable: bool | None = None
+    osg_port_info: dict[str, Any] = Field(default_factory=dict, alias="osgPortInfo")
+    port_uuids: list[str] = Field(default_factory=list, alias="portUuids")
+    interval: int | None = None
+    support_wan_multiple_ip: bool | None = Field(default=None, alias="supportWanMultipleIp")
+    support_lte: bool | None = Field(default=None, alias="supportLte")
+    support_dual_sim: int | None = Field(default=None, alias="supportDualSim")
+    support_dsl: bool | None = Field(default=None, alias="supportDsl")
+    support_virtual_wan: bool | None = Field(default=None, alias="supportVirtualWan")
+    support_network_isolation: bool | None = Field(default=None, alias="supportNetworkIsolation")
+    support_dhcp_options: bool | None = Field(default=None, alias="supportDhcpOptions")
+    support_usb_dhcp_options: bool | None = Field(default=None, alias="supportUsbDhcpOptions")
+    wan_port_settings: list[WanModel] = Field(default_factory=list, alias="wanPortSettings")
+    usb_lte_settings: list[dict[str, Any]] = Field(default_factory=list, alias="usbLteSettings")
+    lte_wan_settings: list[dict[str, Any]] = Field(default_factory=list, alias="lteWanSettings")
+    wan_load_balance: WanBalanceModel | None = Field(default=None, alias="wanLoadBalance")
+    gateway_mac: str | None = Field(default=None, alias="gatewayMac")
 
 # class PrivilegeModel(BaseModel):
 #     sites: list[str]
