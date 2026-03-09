@@ -157,9 +157,46 @@ class InternetModel(BaseModel):
     gateway_mac: str | None = Field(default=None, alias="gatewayMac")
 
 class WlanModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
     wlan_id: str = Field(alias="wlanId")
     name: str
     primary: bool
+
+class SsidListModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    class SsidModel(BaseModel):
+        model_config = ConfigDict(extra="ignore")
+
+        ssid_id: str = Field(alias="ssidId")
+        ssid_name: str = Field(alias="ssidName")
+
+    wlan_id: str = Field(alias="wlanId")
+    wlan_name: str = Field(alias="wlanName")
+    ssid_list: list[SsidModel] = Field(alias="ssidList")
+
+class SsidModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    class PskSettingModel(BaseModel):
+        model_config = ConfigDict(extra="ignore")
+
+        security_key: str | None = Field(default=None, alias="securityKey")
+        version_psk: int | None = Field(default=None, alias="versionPsk")
+        encryption_psk: int | None = Field(default=None, alias="encryptionPsk")
+        gik_rekey_psk_enable: bool | None = Field(default=None, alias="gikRekeyPskEnable")
+
+    ssid_id: str | None = Field(default=None, alias="ssidId")
+    name: str | None = None
+    band: int | None = None
+    auto_wan_access: bool | None = Field(default=None, alias="autoWanAccess")
+    guest_net_enable: bool | None = Field(default=None, alias="guestNetEnable")
+    security: int | None = None
+    broadcast: bool | None = None
+    vlan_enable: bool | None = Field(default=None, alias="vlanEnable")
+    psk_setting: PskSettingModel | None = Field(default=None, alias="pskSetting")
+    device_type: int | None = Field(default=None, alias="deviceType")
 
 # class PrivilegeModel(BaseModel):
 #     sites: list[str]

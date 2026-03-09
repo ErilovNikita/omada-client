@@ -8,7 +8,7 @@ import requests
 # import math
 import urllib3
 
-from omada_client.types import M, ComplexResponseGeneric, InternetModel, PaginationGeneric, WlanModel
+from omada_client.types import M, ComplexResponseGeneric, InternetModel, PaginationGeneric, SsidListModel, SsidModel, WlanModel
 from omada_client.types import AuthorizationModel, ClientModel, HeaderModel, SiteModel
 # from omada_client.types import UserModel, WanPortModel, DeviceModel, WlanModel, GroupModel, GroupMemberIpv4Model, GroupMemberIpv6Model
 
@@ -68,6 +68,18 @@ class OmadaClient:
     def check_site(self) -> None:
        if not self.site_id:
           raise ValueError("\"self.site_id\" is not set")
+       
+    def set_wlan(self, waln_id:str) -> None:
+        self.waln_id = waln_id
+
+    def check_wlan(self) -> None:
+       if not self.waln_id:
+          raise ValueError("\"self.waln_id\" is not set")
+
+    def check_ssid_type(self, type:int) -> None:
+        types:list[int] = [1,2,3]
+        if type not in types:
+            raise ValueError(F"Available types: {', '.join([str(num) for num in types])}")
 
     def format_mac_address(self, mac: str) -> str:
         """
@@ -204,6 +216,31 @@ class OmadaClient:
             )
 
             return response_model.result
+        
+        def get_ssids(self, type:int = 1) -> list[SsidListModel] | None:
+            self.client.check_site()
+            self.client.check_ssid_type(type)
+
+            response_model: ComplexResponseGeneric[list[SsidListModel]] = self.request.GET(
+                path=f"sites/{self.client.site_id}/wireless-network/ssids",
+                params={"type": type},
+                model=ComplexResponseGeneric[list[SsidListModel]]
+            )
+
+            return response_model.result
+        
+        def get_ssid_by_id(self, ssid_id:str) -> SsidModel | None:
+            self.client.check_site()
+            self.client.check_wlan()
+
+            response_model: ComplexResponseGeneric[SsidModel] = self.request.GET(
+                path=f"sites/{self.client.site_id}/wireless-network/wlans/{self.client.waln_id}/ssids/{ssid_id}",
+                params={"type": type},
+                model=ComplexResponseGeneric[SsidModel]
+            )
+
+            return response_model.result
+        
 
     class WanGroup:
         def __init__(self, client:"OmadaClient"):
