@@ -1,0 +1,2 @@
+class OmadaAPIError(RuntimeError):
+    pass

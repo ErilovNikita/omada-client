@@ -1,30 +1,8 @@
 import time
-from typing import Any, Generic, TypeVar
+from typing import Any
 from pydantic import BaseModel, Field, ConfigDict
 
-M = TypeVar("M", bound=BaseModel)
-T = TypeVar("T")
-
-class ComplexResponseGeneric(BaseModel, Generic[T]):
-    error_code: int | None = Field(alias="errorCode", default=None)
-    msg: str | None = Field(None)
-    result: T | None = Field(None)
-
-class PaginationGeneric(BaseModel, Generic[T]):
-    total_rows: int = Field(alias="totalRows")
-    current_page: int = Field(alias="currentPage")
-    current_size: int = Field(alias="currentSize")
-    data: list[T] | None = Field(None)
-
-class IdResponseModel(BaseModel):
-    id: str
-
-class AuthorizationModel(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    
-    access_token: str = Field(alias="accessToken")
-    expires_in: int = Field(alias="expiresIn")
-    refresh_token: str = Field(alias="refreshToken")
+from omada_client.types.responses import AuthorizationResponse
 
 class SiteModel(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -78,7 +56,7 @@ class HeaderModel(BaseModel):
     )
     
     @classmethod
-    def from_auth(cls, auth:AuthorizationModel) -> "HeaderModel":
+    def from_auth(cls, auth:AuthorizationResponse) -> "HeaderModel":
         return cls(Authorization=f"AccessToken={auth.access_token}")
 
     def get_headers(self) -> dict[str, str]:
@@ -298,7 +276,6 @@ class StaticRouteModel(BaseModel):
     interface_type: int = Field(default=0, alias="interfaceType")
     next_hop_ip: str = Field(default="", alias="nextHopIp")
     metric: int = 0
-
 
 class StaticRouteBulkModel(BaseModel):
     model_config = ConfigDict(extra="ignore")
