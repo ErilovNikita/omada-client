@@ -8,7 +8,7 @@ import requests
 # import math
 import urllib3
 
-from omada_client.types import T, ComplexResponseGeneric, InternetModel, PaginationGeneric
+from omada_client.types import M, ComplexResponseGeneric, InternetModel, PaginationGeneric, WlanModel
 from omada_client.types import AuthorizationModel, ClientModel, HeaderModel, SiteModel
 # from omada_client.types import UserModel, WanPortModel, DeviceModel, WlanModel, GroupModel, GroupMemberIpv4Model, GroupMemberIpv6Model
 
@@ -103,7 +103,7 @@ class OmadaClient:
                 raise ValueError("The \"page_size\" parameter must be between 1 and 1000.")
        
 
-        def GET(self, path:str, model: Type[T], params: dict[str, Any] = {}) -> T:
+        def GET(self, path:str, model: Type[M], params: dict[str, Any] = {}) -> M:
             response = self.client.session.get(
                 f"{self.__get_generic_path()}/{path}",
                 headers=self.__get_headers(),
@@ -194,6 +194,16 @@ class OmadaClient:
         def __init__(self, client:"OmadaClient"):
             self.client = client
             self.request = client.Request
+
+        def get_list(self) -> list[WlanModel] | None:
+            self.client.check_site()
+
+            response_model: ComplexResponseGeneric[list[WlanModel]] = self.request.GET(
+                path=f"sites/{self.client.site_id}/wireless-network/wlans",
+                model=ComplexResponseGeneric[list[WlanModel]]
+            )
+
+            return response_model.result
 
     class WanGroup:
         def __init__(self, client:"OmadaClient"):

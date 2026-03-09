@@ -2,7 +2,8 @@ from typing import Any, Generic, TypeVar
 from pydantic import BaseModel, Field, ConfigDict#, field_validator
 #import time
 
-T = TypeVar("T", bound=BaseModel)
+M = TypeVar("M", bound=BaseModel)
+T = TypeVar("T")
 
 class ComplexResponseGeneric(BaseModel, Generic[T]):
     error_code: int | None = Field(alias="errorCode", default=None)
@@ -125,7 +126,6 @@ class WanModel(BaseModel):
     wan_port_ipv6_setting: Ipv6SettingModel | None = Field(default=None, alias="wanPortIpv6Setting")
     wan_port_mac_setting: MacSettingModel | None = Field(default=None, alias="wanPortMacSetting")
 
-
 class InternetModel(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
@@ -155,6 +155,11 @@ class InternetModel(BaseModel):
     lte_wan_settings: list[dict[str, Any]] = Field(default_factory=list, alias="lteWanSettings")
     wan_load_balance: WanBalanceModel | None = Field(default=None, alias="wanLoadBalance")
     gateway_mac: str | None = Field(default=None, alias="gatewayMac")
+
+class WlanModel(BaseModel):
+    wlan_id: str = Field(alias="wlanId")
+    name: str
+    primary: bool
 
 # class PrivilegeModel(BaseModel):
 #     sites: list[str]
