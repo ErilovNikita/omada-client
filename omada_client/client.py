@@ -5,13 +5,10 @@ Permit send commands to omada controller via http calls
 
 from typing import Any, Type
 import requests
-# import math
 import urllib3
 
-from omada_client.types import M, ComplexResponseGeneric, InternetModel, IpSettingModel, PaginationGeneric, SsidListModel, SsidModel, WanModel, WlanModel
-from omada_client.types import AuthorizationModel, ClientModel, HeaderModel, SiteModel
-# from omada_client.types import UserModel, WanPortModel, DeviceModel, WlanModel, GroupModel, GroupMemberIpv4Model, GroupMemberIpv6Model
-
+from omada_client.types import M, ComplexResponseGeneric, PaginationGeneric, StaticRouteBulkModel, StaticRouteModel
+from omada_client.types import AuthorizationModel, ClientModel, HeaderModel, SiteModel, InternetModel, IpSettingModel, ProfileGroupModel, SsidListModel, SsidModel, WanModel, WlanModel
 
 class OmadaClient:
     """
@@ -35,6 +32,8 @@ class OmadaClient:
         self.Client = self.ClientGroup(self)
         self.Wan = self.WanGroup(self)
         self.Wlan = self.WlanGroup(self)
+        self.Profile = self.ProfileGroup(self)
+        self.Routing = self.RoutingGroup(self)
 
     def __authorize(self, client_id:str, client_secret:str) -> None:
         """
@@ -129,6 +128,19 @@ class OmadaClient:
         
         def PATCH(self, path:str, model: Type[M], data: dict[str, Any] = {}, params: dict[str, Any] = {}) -> M:
             response = self.client.session.patch(
+                f"{self.__get_generic_path()}/{path}",
+                headers=self.__get_headers(),
+                params=params,
+                json=data,
+                verify=False,
+            )
+
+            response.raise_for_status()
+
+            return model.model_validate_json(response.text)
+        
+        def POST(self, path:str, model: Type[M], data: dict[str, Any] = {}, params: dict[str, Any] = {}) -> M:
+            response = self.client.session.post(
                 f"{self.__get_generic_path()}/{path}",
                 headers=self.__get_headers(),
                 params=params,
@@ -308,212 +320,95 @@ class OmadaClient:
 
             return None
 
-    # def __divider(self, data: str, separator: str, size: int = 16) -> dict:
-    #     """
-    #     Divides lists into blocks with the required number
-    #     Require:
-    #         - data: Data for creating a route
-    #         - separator: Separator symbol
-    #         - size: Block size (default 16)
-    #     """
-    #     result = []
-    #     part_count = math.ceil(len(data.split(separator)) / size)
+    class ProfileGroup:
+        def __init__(self, client:"OmadaClient"):
+            self.client = client
+            self.request = client.Request
 
-    #     for part_number in range(part_count):
-    #         data_part = []
-    #         end = 16 + (16 * part_number) - 1
+        def get_all_group(self) -> list[ProfileGroupModel] | None:
+            self.client.check_site()
 
-    #         if end > (len(data.split(separator)) - 1):
-    #             end = len(data.split(separator)) - 1
+            response_model: ComplexResponseGeneric[list[ProfileGroupModel]] = self.request.GET(
+                path=f"sites/{self.client.site_id}/profiles/groups",
+                model=ComplexResponseGeneric[list[ProfileGroupModel]]
+            )
 
-    #         i = 0 + (16 * part_number)
-    #         while i <= end:
-    #             data_part.append(data.split(separator)[i])
-    #             i += 1
-
-    #         result.append(data_part)
-    #     return result
-
-    # def get_all_groups(self) -> list[GroupModel]:
-    #     """Get a list of groups"""
-    #     response = self.__send_get_request(
-    #         f"/{self.user_id}/api/v2/sites/{self.site}/setting/profiles/groups?currentPage=1&currentPageSize=1000"
-    #     ).result
-    #     group_list = []
-    #     for item in response.get("data"):
-    #         group_list.append(GroupModel.model_validate(item))
-    #     return group_list
+            return response_model.result
     
-    # def get_group_by_id(self, id:str) -> GroupModel:
-    #     """Get group by ID"""
-    #     group = next(
-    #         (group for group in self.get_all_groups() if group.group_id.lower() == id.lower()),
-    #         None,
-    #     )
-    #     if group: 
-    #         return GroupModel.model_validate(group)
-    #     else:
-    #         raise ValueError(f"Not found group with id is {id}")
+        def get_group_by_id(self, group_id:str) -> ProfileGroupModel | None:
+            response = self.get_all_group()
+
+            if response:
+                all_group:list[ProfileGroupModel] = response
+                
+                for group in all_group:
+                    if group.group_id == group_id:
+                        return group
+
+            return None
         
-    # def get_group_by_name(self, name:str) -> GroupModel:
-    #     """Get group by name"""
-    #     group = next(
-    #         (group for group in self.get_all_groups() if group.name == name),
-    #         None,
-    #     )
-    #     if group: 
-    #         return GroupModel.model_validate(group)
-    #     else:
-    #         raise ValueError(f"Not found group with name is {name}")
+        def get_group_by_name(self, group_name:str) -> ProfileGroupModel | None:
+            response = self.get_all_group()
 
-    # def create_group_ip_v4(self, group_name:str, ip_v4_list:list[GroupMemberIpv4Model]) -> None:
-    #     """Create group"""
-    #     data = {
-    #         "type" : 0,
-    #         "name": group_name,
-    #         "ipList": [member.model_dump() for member in ip_v4_list]
-    #     }
+            if response:
+                all_group:list[ProfileGroupModel] = response
+                
+                for group in all_group:
+                    if group.name == group_name:
+                        return group
 
-    #     url = f"{self.base_url}/{self.user_id}/api/v2/sites/{self.site}/setting/profiles/groups"
-    #     response = self.session.post( url, headers=self.__get_headers(), json=data, verify=False)
-    #     response.raise_for_status()
-    
-    # def __patch_group(
-    #     self, 
-    #     group_name:str,
-    #     ip_v4_list:list[GroupMemberIpv4Model] = [],
-    #     ip_v6_list:list[GroupMemberIpv6Model] = [],
-    # ) -> None:
-    #     """Update group"""
-    #     current_group:GroupModel = self.get_group_by_name(group_name)
+            return None
+        
+        # TO-DO
+        # def create_group(self, group: dict[str, Any]) -> ProfileGroupModel | None:
+        #     self.client.check_site()
+        #     group_valid = ProfileGroupModel.model_validate(group)
 
-    #     if not current_group:
-    #         raise ValueError(f"Not found group with name is {group_name}")
-    #     else:
-    #         data = {
-    #             "resource" : current_group.resource,
-    #             "type" : current_group.type,
-    #             "name": current_group.name,
-    #             "ipList": [member.model_dump() for member in ip_v4_list],
-    #             "ipv6List": [member.model_dump() for member in ip_v6_list],
-    #             "macAddressList": current_group.mac_address_list,
-    #             "portList": current_group.port_list,
-    #             "countryList": current_group.country_list,
-    #             "portType": current_group.port_type,
-    #             "portMaskList": current_group.port_mask_list,
-    #             "domainNamePort":current_group.domain_name_port,
-    #         }
+        #     response_model: ComplexResponseGeneric[IdResponseModel] = self.request.POST(
+        #         path=f"sites/{self.client.site_id}/profiles/groups",
+        #         data=group_valid.model_dump(),
+        #         model=ComplexResponseGeneric[IdResponseModel]
+        #     )
+            
+        #     if response_model.result and response_model.result.id:
+        #         return self.get_group_by_id(response_model.result.id)
 
-    #         url = f"{self.base_url}/{self.user_id}/api/v2/sites/{self.site}/setting/profiles/groups/0/{current_group.group_id}"
-    #         response = self.session.patch( url, headers=self.__get_headers(), json=data, verify=False)
-    #         response.raise_for_status()
+    class RoutingGroup:
+        def __init__(self, client:"OmadaClient"):
+            self.client = client
+            self.request = client.Request
+            
+        def create_static_route(self, route: dict[str, Any]) -> None:
+            self.client.check_site()
+            route_model:StaticRouteModel = StaticRouteModel.model_validate(route)
 
-    # def add_ipv4_on_group_by_name(self, group_name:str, ip_v4_list:list[GroupMemberIpv4Model]) -> None:
-    #     """Add ip addres on group"""
-    #     current_group:GroupModel = self.get_group_by_name(group_name)
+            response_model = self.request.POST(
+                path=f"sites/{self.client.site_id}/routing/static-routings",
+                data=route_model.model_dump(by_alias=True),
+                model=ComplexResponseGeneric[Any] 
+            )
 
-    #     if not current_group:
-    #         raise ValueError(f"Not found group with name is {group_name}")
-    #     else:
-    #         current_list:list[GroupMemberIpv4Model] = current_group.ip_list
+            if response_model.msg != 'Success.':
+                raise ValueError(f"{response_model.error_code} {response_model.msg}")
+            
+        def create_static_route_with_big_data(self, config: dict[str, Any]) -> None:
+            self.client.check_site()
 
-    #         for ip in ip_v4_list:
-    #             current_list.append(ip)
+            config_model = StaticRouteBulkModel.model_validate(config)
+            for route in config_model.routes:
+                ips = route.ips
 
-    #         self.__patch_group(current_group.name, ip_v4_list=current_list)
+                parts = [
+                    ips[i:i + 16]
+                    for i in range(0, len(ips), 16)
+                ]
 
-    # def delete_ipv4_from_group_by_name(self, group_name:str, ip_v4:GroupMemberIpv4Model) -> None:
-    #     """Remove ip addres from group"""
-    #     current_group:GroupModel = self.get_group_by_name(group_name)
-    #     if not current_group:
-    #         raise ValueError(f"Not found group with name is {group_name}")
-    #     else:
-    #         current_list:list[GroupMemberIpv4Model] = current_group.ip_list
-
-    #         for ip in current_list:
-    #             if ip_v4.ip == ip.ip:
-    #                 current_list.remove(ip)
-
-    #         self.__patch_group(current_group.name, ip_v4_list=current_list)
-
-    # def create_static_route(
-    #     self,
-    #     route_name: str,
-    #     destinations: list[str],
-    #     interface_id: str,
-    #     next_hop_ip: str,
-    #     enable: bool = True,
-    #     metricId: int = 0,
-    # ) -> None:
-    #     """
-    #     Create a static route
-    #     Require:
-    #         - route_name: Name of the new route
-    #         - destinations: Array with route data
-    #         - interface_id: Output interface identifier
-    #         - next_hop_ip: Next address (Usually the gateway address of the selected WAN port)
-    #         - enable: Enable route immediately
-    #         - metricId: Metric identifier
-    #     """
-    #     response = self.session.post(
-    #         f"{self.base_url}/{self.user_id}/api/v2/sites/{self.site}/setting/transmission/staticRoutings",
-    #         headers=self.__get_headers(),
-    #         json={
-    #             "name": route_name,
-    #             "status": enable,
-    #             "destinations": destinations,
-    #             "routeType": 1,
-    #             "interfaceId": interface_id,
-    #             "interfaceType": 0,
-    #             "nextHopIp": next_hop_ip,
-    #             "metric": metricId,
-    #         },
-    #         verify=False
-    #     )
-    #     response.raise_for_status()
-
-    # def create_static_route_to_inteface_with_big_data(
-    #     self,
-    #     data_static_routes: list,
-    #     interface_id: str,
-    #     next_hop_ip: str,
-    #     enable: bool = True,
-    #     metricId: int = 0,
-    # ) -> None:
-    #     """
-    #     Create a static route from a large amount of data
-    #     Require:
-    #         - route_name: Name of the new route
-    #         - data_static_routes: Array with route data
-    #         - interface_id: Output interface identifier
-    #         - next_hop_ip: Next address (Usually the gateway address of the selected WAN port)
-    #         - enable: Enable route immediately
-    #         - metricId: Metric identifier
-    #     """
-    #     for static_route in data_static_routes:
-    #         parts = self.__divider(
-    #             data=static_route["ips"],
-    #             size=16,
-    #             separator=", "
-    #         )
-
-    #         if len(parts) == 1:
-    #             self.create_static_route(
-    #                 static_route["name"],
-    #                 parts[0],
-    #                 interface_id,
-    #                 next_hop_ip,
-    #                 enable,
-    #                 metricId,
-    #             )
-    #         else:
-    #             for part_number in range(len(parts)):
-    #                 part_name = static_route["name"] + " " + str(part_number + 1)
-    #                 self.create_static_route(
-    #                     part_name,
-    #                     parts[part_number],
-    #                     interface_id,
-    #                     next_hop_ip,
-    #                     enable,
-    #                     metricId,
-    #                 )
+                for index, part in enumerate(parts, start=1):
+                    self.create_static_route({
+                        "name": route.name if len(parts) == 1 else f"{route.name} {index}",
+                        "destinations": part,
+                        "interfaceId": config_model.interface_id,
+                        "nextHopIp": config_model.next_hop_ip,
+                        "status": config_model.status,
+                        "metric": config_model.metric
+                    })

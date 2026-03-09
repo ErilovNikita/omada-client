@@ -1,6 +1,6 @@
+import time
 from typing import Any, Generic, TypeVar
-from pydantic import BaseModel, Field, ConfigDict#, field_validator
-#import time
+from pydantic import BaseModel, Field, ConfigDict
 
 M = TypeVar("M", bound=BaseModel)
 T = TypeVar("T")
@@ -15,6 +15,9 @@ class PaginationGeneric(BaseModel, Generic[T]):
     current_page: int = Field(alias="currentPage")
     current_size: int = Field(alias="currentSize")
     data: list[T] | None = Field(None)
+
+class IdResponseModel(BaseModel):
+    id: str
 
 class AuthorizationModel(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -204,123 +207,110 @@ class SsidModel(BaseModel):
     psk_setting: PskSettingModel | None = Field(default=None, alias="pskSetting")
     device_type: int | None = Field(default=None, alias="deviceType")
 
-# class PrivilegeModel(BaseModel):
-#     sites: list[str]
-#     all: bool
+class ProfileGroupModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    class GroupMemberIpv4Model(BaseModel):
+        ip: str
+        mask: int = Field(32)
+        description: str = Field("")
+        key: int = Field(int(time.time())*1000)
+
+    class GroupMemberIpv6Model(BaseModel):
+        ip: str
+        prefix: int
+        key: int = Field(int(time.time())*1000)
+
+    group_id: str = Field("", alias="groupId")
+    site: str = Field("")
+    build_in: bool = Field(False, alias="buildIn")
+    name: str
+    ip_list: list[GroupMemberIpv4Model] = Field([], alias="ipList")
+    ip_v6_list: list[GroupMemberIpv6Model] = Field([], alias="ipv6List")
+    count: int
+    type: int
+    domain_name_port: list[Any] = Field(None, alias="domainNamePort")
+    port_mask_list: list[Any] = Field(None, alias="portMaskList")
+    port_type: int = Field(None, alias="portType")
+    country_list: list[Any] = Field(None, alias="countryList")
+    port_list: list[Any] = Field(None, alias="portList")
+    mac_address_list: list[Any] = Field(None, alias="macAddressList")
+
+class GroupRequestModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    class IpModel(BaseModel):
+        model_config = ConfigDict(extra="ignore")
+
+        ip: str | None = None
+        mask: int | None = None
+        description: str | None = None
+
+    class Ipv6Model(BaseModel):
+        model_config = ConfigDict(extra="ignore")
+
+        ip: str | None = None
+        prefix: int | None = None
+        description: str | None = None
+
+    class PortMaskModel(BaseModel):
+        model_config = ConfigDict(extra="ignore")
+
+        port: int | None = None
+        mask: str | None = None
+
+    class MacAddressModel(BaseModel):
+        model_config = ConfigDict(extra="ignore")
+
+        name: str | None = None
+        mac_address: str | None = Field(default=None, alias="macAddress")
+
+    class DomainNamePortModel(BaseModel):
+        model_config = ConfigDict(extra="ignore")
+
+        address: str | None = None
+        port: str | None = None
+        description: str | None = None
+
+    name: str | None = None
+    type: int | None = None
+    ip_list: list[IpModel] = Field(default_factory=list, alias="ipList")
+    ipv6_list: list[Ipv6Model] = Field(default_factory=list, alias="ipv6List")
+    port_type: int | None = Field(default=None, alias="portType")
+    port_list: list[int] = Field(default_factory=list, alias="portList")
+    port_mask_list: list[PortMaskModel] = Field(default_factory=list, alias="portMaskList")
+    mac_address_list: list[MacAddressModel] = Field(default_factory=list, alias="macAddressList")
+    country_list: list[str] = Field(default_factory=list, alias="countryList")
+    description: str | None = None
+    domain_name_port: list[DomainNamePortModel] = Field(
+        default_factory=list,
+        alias="domainNamePort"
+    )
+
+class StaticRouteModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    name: str
+    status: bool = True
+    destinations: list[str]
+    route_type: int = Field(default=0, alias="routeType")
+    interface_id: str = Field(default="", alias="interfaceId")
+    interface_type: int = Field(default=0, alias="interfaceType")
+    next_hop_ip: str = Field(default="", alias="nextHopIp")
+    metric: int = 0
 
 
-# class UserModel(BaseModel):
-#     id: str
-#     role_id: str = Field(None, alias="roleId")
-#     role_name: str = Field(None, alias="roleName")
-#     name: str
-#     email: str
-#     omada_id: str = Field(None, alias="omadacId")
-#     privilege: PrivilegeModel
-#     root: bool
+class StaticRouteBulkModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
 
+    class StaticRouteBulkItemModel(BaseModel):
+        model_config = ConfigDict(extra="ignore")
 
-# class WanPortModel(BaseModel):
-#     port_uuid: str = Field(None, alias="portUuid")
-#     port_name: str = Field(None, alias="portName")
-#     port_desc: str = Field(None, alias="portDesc")
-#     wan_port_ipv4_setting: dict = Field(None, alias="wanPortIpv4Setting")
+        name: str
+        ips: list[str]
 
-
-# class WlanModel(BaseModel):
-#     id: str
-#     name: str
-#     site: str
-#     guest: bool = Field(None, alias="guestNetEnable")
-#     psk_setting: dict = Field(None, alias="pskSetting")
-#     vlan_id: int = Field(None, alias="vlanId")
-
-
-# class DeviceModel(BaseModel):
-#     type: str
-#     mac: str
-#     name: str
-#     model: str
-#     hw_version: str = Field(None, alias="modelVersion")
-#     fw_version: str = Field(None, alias="firmwareVersion")
-#     ip: str | None
-#     uptime: str | None = None
-#     uptime_long: int = Field(None, alias="uptimeLong")
-#     status: int
-#     last_seen: int = Field(None, alias="lastSeen")
-#     need_upgrade: bool = Field(None, alias="needUpgrade")
-#     fw_download: bool = Field(None, alias="fwDownload")
-#     cpu_util: int = Field(None, alias="cpuUtil")
-#     mem_util: int = Field(None, alias="memUtil")
-#     download: int | None = None
-#     upload: int | None = None
-#     site: str | None
-#     client_num: int = Field(None, alias="clientNum")
-#     sn: str | None
-#     category: str | None = None
-#     poe_remain: float = Field(None, alias="poeRemain")
-#     fan_status: int = Field(None, alias="fanStatus")
-#     poe_support: bool = Field(None, alias="poeSupport")
-
-
-# class ClientModel(BaseModel):
-#     mac: str
-#     name: str
-#     host_name: str = Field(None, alias="hostName")
-#     device_type: str = Field(None, alias="deviceType")
-#     ip: str
-#     connect_type: int = Field(None, alias="connectType")
-#     connect_dev_type: str = Field(None, alias="connectDevType")
-#     connected_to_wireless_router: bool = Field(None, alias="connectedToWirelessRouter")
-#     wireless: bool
-#     switch_mac: str = Field(None, alias="switchMac")
-#     switch_name: str = Field(None, alias="switchName")
-#     stackable_switch: bool = Field(None, alias="stackableSwitch")
-#     vid: int
-#     network_name: str = Field(None, alias="networkName")
-#     dot1x_vlan: int = Field(None, alias="dot1xVlan")
-#     activity: int
-#     traffic_down: int = Field(None, alias="trafficDown")
-#     traffic_up: int = Field(None, alias="trafficUp")
-#     uptime: int
-#     last_seen: int = Field(None, alias="lastSeen")
-#     auth_status: int = Field(None, alias="authStatus")
-#     guest: bool
-#     active: bool
-#     manager: bool
-#     ip_setting: dict = Field(None, alias="ipSetting")
-#     down_packet: int = Field(None, alias="downPacket")
-#     up_packet: int = Field(None, alias="upPacket")
-#     rate_limit: dict = Field(None, alias="rateLimit")
-#     standard_port: str = Field(None, alias="standardPort")
-#     system_name: str | None = Field(None, alias="systemName")
-#     connect_dev_subtype: int = Field(None, alias="connectDevSubtype")
-
-
-# class GroupMemberIpv4Model(BaseModel):
-#     ip: str
-#     mask: int = Field(32)
-#     description: str = Field("")
-#     key: int = Field(int(time.time())*1000)
-
-# class GroupMemberIpv6Model(BaseModel):
-#     ip: str
-#     prefix: int
-#     key: int = Field(int(time.time())*1000)
-
-# class GroupModel(BaseModel):
-    # group_id: str = Field("", alias="groupId")
-    # site: str = Field("")
-    # build_in: bool = Field(False, alias="buildIn")
-    # name: str
-    # ip_list: list[GroupMemberIpv4Model] = Field([], alias="ipList")
-    # ip_v6_list: list[GroupMemberIpv6Model] = Field([], alias="ipv6List")
-    # count: int
-    # type: int
-    # resource: int
-    # domain_name_port: list = Field(None, alias="domainNamePort")
-    # port_mask_list: list = Field(None, alias="portMaskList")
-    # port_type: int = Field(None, alias="portType")
-    # country_list: list = Field(None, alias="countryList")
-    # port_list: list = Field(None, alias="portList")
-    # mac_address_list: list = Field(None, alias="macAddressList")
+    routes: list[StaticRouteBulkItemModel]
+    interface_id: str = Field(alias="interfaceId")
+    next_hop_ip: str = Field(alias="nextHopIp")
+    status: bool = True
+    metric: int = 0
