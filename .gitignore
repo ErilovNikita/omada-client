@@ -51,8 +51,8 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
-examples
-examples/*
+local-examples
+local-examples/*
 *.BAK
 
 # Translations
