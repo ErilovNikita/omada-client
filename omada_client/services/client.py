@@ -8,7 +8,7 @@ from omada_client.types.responses import ComplexResponseGeneric, PaginationRespo
 class ClientGroup(BaseService):
 
     def get_list(self, page: int = 1, page_size: int = 1000) -> PaginationResponseGeneric[ClientModel] | None:
-        self.client.Check.site()
+        self.client.check.site()
         self.request.check_pagination_params(page, page_size)
 
         response_model: ComplexResponseGeneric[PaginationResponseGeneric[ClientModel]] = self.request.GET(
@@ -20,7 +20,7 @@ class ClientGroup(BaseService):
         return response_model.result
     
     def get_info_by_mac(self, mac: str) -> ClientModel | None:
-        self.client.Check.site()
+        self.client.check.site()
 
         response_model: ComplexResponseGeneric[ClientModel] = self.request.GET(
             path=f"sites/{self.client.site_id}/clients/{mac}",
@@ -30,7 +30,7 @@ class ClientGroup(BaseService):
         return response_model.result
     
     def get_by_ip(self, ip: str) -> ClientModel | None:
-        self.client.Check.site()
+        self.client.check.site()
 
         page: int = 1
         page_size: int = 100
@@ -53,9 +53,9 @@ class ClientGroup(BaseService):
         return None
 
     def set_ip_settings(self, mac: str, data:dict[str, Any]) -> Any:
-        self.client.Check.site()
+        self.client.check.site()
 
-        mac_valid:str = self.client.Format.mac_address(mac)
+        mac_valid:str = self.client.format.mac_address(mac)
         data_valid:IpSettingModel = IpSettingModel.model_validate(data)
 
         response_model: ComplexResponseGeneric[Any] = self.request.PATCH(
@@ -67,7 +67,7 @@ class ClientGroup(BaseService):
         return response_model
     
     def __control(self, mac:str, method:str) -> None:
-        self.client.Check.site()
+        self.client.check.site()
 
         response_model: ComplexResponseGeneric[Any] = self.request.POST(
             path=f"sites/{self.client.site_id}/clients/{mac}/{method}",

@@ -6,7 +6,7 @@ from omada_client.types.responses import ComplexResponseGeneric
 class ProfileGroup(BaseService):
 
     def get_all_group(self) -> list[ProfileGroupModel] | None:
-        self.client.Check.site()
+        self.client.check.site()
 
         response_model: ComplexResponseGeneric[list[ProfileGroupModel]] = self.request.GET(
             path=f"sites/{self.client.site_id}/profiles/groups",

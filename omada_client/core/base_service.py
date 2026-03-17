@@ -6,4 +6,4 @@ if TYPE_CHECKING:
 class BaseService:
     def __init__(self, client:"OmadaClient"):
         self.client = client
-        self.request = client.Request
+        self.request = client.request

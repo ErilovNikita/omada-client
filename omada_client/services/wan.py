@@ -6,7 +6,7 @@ from omada_client.types.responses import ComplexResponseGeneric
 class WanGroup(BaseService):
 
     def get_info_all(self) -> InternetModel | None:
-        self.client.Check.site()
+        self.client.check.site()
 
         response_model: ComplexResponseGeneric[InternetModel] = self.request.GET(
             path=f"sites/{self.client.site_id}/internet",

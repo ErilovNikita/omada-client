@@ -6,7 +6,7 @@ from omada_client.types.responses import ComplexResponseGeneric
 class WlanGroup(BaseService):
 
     def get_list(self) -> list[WlanModel] | None:
-        self.client.Check.site()
+        self.client.check.site()
 
         response_model: ComplexResponseGeneric[list[WlanModel]] = self.request.GET(
             path=f"sites/{self.client.site_id}/wireless-network/wlans",
@@ -16,8 +16,8 @@ class WlanGroup(BaseService):
         return response_model.result
     
     def get_ssids(self, type:int = 1) -> list[SsidListModel] | None:
-        self.client.Check.site()
-        self.client.Check.ssid_type(type)
+        self.client.check.site()
+        self.client.check.ssid_type(type)
 
         response_model: ComplexResponseGeneric[list[SsidListModel]] = self.request.GET(
             path=f"sites/{self.client.site_id}/wireless-network/ssids",
@@ -28,8 +28,8 @@ class WlanGroup(BaseService):
         return response_model.result
     
     def get_ssid_by_id(self, ssid_id:str) -> SsidModel | None:
-        self.client.Check.site()
-        self.client.Check.wlan()
+        self.client.check.site()
+        self.client.check.wlan()
 
         response_model: ComplexResponseGeneric[SsidModel] = self.request.GET(
             path=f"sites/{self.client.site_id}/wireless-network/wlans/{self.client.waln_id}/ssids/{ssid_id}",
