@@ -298,19 +298,19 @@ class DeviceModel(BaseModel):
     mac: str
     name: str
     type: str
-    deviceSeriesType: int
+    device_series_type: int = Field(alias="deviceSeriesType")
     model: str
-    modelName: str
+    model_name: str = Field(alias="modelName")
     ip: str
     uptime: str
     status: int
-    detailStatus: int
-    modelVersion: str
-    lastSeen: int
-    cpuUtil: int
-    memUtil: int
+    detail_status: int = Field(alias="detailStatus")
+    version: str = Field(alias="modelVersion")
+    last_seen: int = Field(alias="lastSeen")
+    cpu_util: int = Field(alias="cpuUtil")
+    mem_util: int = Field(alias="memUtil")
     sn: str
-    switchConsistent: bool
-    publicIp: str
-    firmwareVersion: str
+    switch_consistent: bool = Field(alias="switchConsistent")
+    public_ip: str = Field(alias="publicIp")
+    firmware_version: str = Field(alias="firmwareVersion")
     compatible: int
