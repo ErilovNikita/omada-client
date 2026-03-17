@@ -63,9 +63,7 @@ def main() -> None:
             net2, route2 = networks[j]
 
             if net1.overlaps(net2):
-                # выбираем более широкую сеть как ключ
                 parent = net1 if net1.prefixlen < net2.prefixlen else net2
-
                 overlaps[parent].update([route1, route2])
        
 
