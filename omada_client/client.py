@@ -11,6 +11,7 @@ from .services.wlan import WlanGroup
 from .services.wan import WanGroup
 from .services.profile import ProfileGroup
 from .services.routing import RoutingGroup
+from .services.device import DeviceGroup
 
 
 class OmadaClient:
@@ -43,3 +44,4 @@ class OmadaClient:
         self.wan = WanGroup(self)
         self.profile = ProfileGroup(self)
         self.routing = RoutingGroup(self)
+        self.device = DeviceGroup(self)

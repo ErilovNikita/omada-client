@@ -291,3 +291,26 @@ class StaticRouteBulkModel(BaseModel):
     next_hop_ip: str = Field(alias="nextHopIp")
     status: bool = True
     metric: int = 0
+
+class DeviceModel(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    mac: str
+    name: str
+    type: str
+    deviceSeriesType: int
+    model: str
+    modelName: str
+    ip: str
+    uptime: str
+    status: int
+    detailStatus: int
+    modelVersion: str
+    lastSeen: int
+    cpuUtil: int
+    memUtil: int
+    sn: str
+    switchConsistent: bool
+    publicIp: str
+    firmwareVersion: str
+    compatible: int
