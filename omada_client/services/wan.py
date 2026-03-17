@@ -34,7 +34,7 @@ class WanGroup(BaseService):
             internet_info:InternetModel = response
             
             for wan in internet_info.wan_port_settings:
-                if wan.port_description == wan_description:
+                if wan.port_description and wan.port_description.lower() == wan_description.lower():
                     return wan
 
         return None
